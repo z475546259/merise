@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>生日祝福</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+    <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	<div id="contextBox" style="float: right; display: none;">
+  		<table id="dg" title="当日生日业主信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="false">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<label style="margin-left: 5px; margin-right: 5px;">房屋状态</label><input id="houseStatus" name="houseStatus" class="easyui-combobox" style="width: 100px;" />
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-feed" plain="true" id="app">APP消息发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-email" plain="true" id="email">邮件发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-credit-card" plain="true" id="message">短信发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-premium" plain="true" id="auto">自动发送设置</a>
+	    </div>
+	    <div id="dlg" class="easyui-dialog" style="width: 500px;" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	        	 <div style="margin-bottom:10px">
+	                <input type="text" id="title" placeholder="请输入消息标题" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<textarea id="messageContent" name="messageContent" rows="10" style="width: 100%;" placeholder="请输入消息内容"></textarea>
+	            	<input type="hidden" id="mode" name="mode" />
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    <!-- 自动发送 -->
+	    <div id="autoDlg" class="easyui-dialog" style="width: 500px;" closed="true" buttons="#autoDlg-buttons">
+	        <form id="autoDlgForm" method="post" novalidate style="margin:0;padding:20px 50px">
+	        	<div style="margin-bottom:10px">
+	        	 	<label>APP推送<input name="message_app_c" type="checkbox" style="position: relative; top: 3px;" /></label>&nbsp;
+	                <label>邮件推送<input name="message_mail_c" type="checkbox" style="position: relative; top: 3px;" /></label>&nbsp;
+	                <label>短信推送<input name="message_sms_c" type="checkbox" style="position: relative; top: 3px;" /></label>
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label for="message_title" class="textbox-label textbox-label-before">推送时间</label>
+	                <select name="message_hour" style="width: 100%;border: none; border: #95B8E7 1px solid; height: 22px; border-radius: 3px; outline: none;">
+	                	<option value="0">0点</option>
+	                	<option value="1">1点</option>
+	                	<option value="2">2点</option>
+	                	<option value="3">3点</option>
+	                	<option value="4">4点</option>
+	                	<option value="5">5点</option>
+	                	<option value="6">6点</option>
+	                	<option value="7">7点</option>
+	                	<option value="8">8点</option>
+	                	<option value="9">9点</option>
+	                	<option value="10">10点</option>
+	                	<option value="11">11点</option>
+	                	<option value="12">12点</option>
+	                	<option value="13">13点</option>
+	                	<option value="14">14点</option>
+	                	<option value="15">15点</option>
+	                	<option value="16">16点</option>
+	                	<option value="17">17点</option>
+	                	<option value="18">18点</option>
+	                	<option value="19">19点</option>
+	                	<option value="20">20点</option>
+	                	<option value="21">21点</option>
+	                	<option value="22">22点</option>
+	                	<option value="23">23点</option>
+	                </select>
+	            </div>
+	        	<div style="margin-bottom:10px">
+	        		<label for="message_title" class="textbox-label textbox-label-before">消息标题</label>
+	                <input type="text" id="message_title" name="message_title" class="easyui-validatebox" data-options="required:true" style="width:100%;border: none; border: #ffa8a8 1px solid; height: 22px; border-radius: 3px; text-indent: 4px; outline: none;" />
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label for="message_content" class="textbox-label textbox-label-before">消息内容</label>
+	            	<textarea id="message_content" name="message_content" rows="6" required="true" label="消息内容" style="width:100%" class="easyui-validatebox" data-options="required:true"></textarea>
+	            	<input type="hidden" name="building_id" id="building_id" />
+	            	<input type="hidden" name="house_dong" id="house_dong" />
+	            	<input type="hidden" name="message_app" id="message_app" />
+	            	<input type="hidden" name="message_mail" id="message_mail" />
+	            	<input type="hidden" name="message_sms" id="message_sms" />
+	            </div>
+	        </form>
+	    </div>
+	    <div id="autoDlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="autoSubmit" style="width:90px">确定</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#autoDlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+  	</div>
+  	
+  	<script type="text/javascript">
+  		$(document).ready(function(){
+  			$("#tree").tree({
+  				url : "messageGroup/tree",
+  				onClick : function(node) {
+				 	var building_id = node.id;//楼盘id
+		    	 	var dong = node.attributes.house_dong;// 栋
+  					if (node.attributes.level == "house") {
+  						$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+  						$("#contextBox").show();
+  						$("#dg").datagrid({
+  							remoteSort:false,
+  		        			nowrap:false,
+  		        			pagination: true, //显示分页
+  		                    pageSize: 10, //页大小
+  		                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+  		        			url:'festival/index?buildId='+building_id+'&dong='+dong,
+  		        			columns:[[
+								{field:'ck', checkbox:true},
+  		        				{field:'house_id',title:'房屋编号',width:10},
+  		        				{field:'house_units',title:'单元号',width:10},
+  		        				{field:'house_floor',title:'楼层号',width:10},
+  		        				{field:'house_room',title:'房号',width:10},
+  		        				{field:'owner_id',title:'业主编号',width:10},
+  		        				{field:'owner_name',title:'业主姓名',width:10},
+  		        				{field:'owner_mobile',title:'业主手机',width:10},
+  		        				{field:'owner_email',title:'业主邮箱',width:10},
+  		        				{field:'owner_idcard',title:'身份证号',width:10},
+  		        				{field:'house_status_text',title:'房屋状态',width:10},
+  		        				{field:'clientid',title:'客户端编号',width:10}
+  		        			]]
+  						});
+  						$("#dg").datagrid("hideColumn", "house_id");
+  						$("#dg").datagrid("hideColumn", "owner_id");
+  						$("#dg").datagrid("hideColumn", "clientid");
+  						$("#houseStatus").combobox({
+  			  				url:"festival/housestatus?buildId="+building_id,
+  			  				valueField:"id",
+  			  				textField:"text"
+  			  			});
+  					} else {
+  						$("#contextBox").hide();
+  					}
+  				}
+  			});
+  		});
+  		
+  		// 房屋状态下拉框
+		$("#houseStatus").combobox({
+			onSelect : function(res){
+				var node = $("#tree").tree("getSelected");
+				$("#dg").datagrid({
+					remoteSort:false,
+	       			nowrap:false,
+	       			pagination: true, //显示分页
+                   	pageSize: 10, //页大小
+                   	pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	       			url:'festival/index?buildId='+node.id+'&dong='+node.text+'&houseStatus='+res.id,
+	       			columns:[[
+						{field:'ck', checkbox:true},
+	       				{field:'house_id',title:'房屋编号',width:10},
+	       				{field:'house_units',title:'单元号',width:10},
+	       				{field:'house_floor',title:'楼层号',width:10},
+	       				{field:'house_room',title:'房号',width:10},
+	       				{field:'owner_id',title:'业主编号',width:10},
+	       				{field:'owner_name',title:'业主姓名',width:10},
+	       				{field:'owner_mobile',title:'业主手机',width:10},
+	       				{field:'owner_email',title:'业主邮箱',width:10},
+	       				{field:'owner_idcard',title:'身份证号',width:10},
+	       				{field:'house_status_text',title:'房屋状态',width:10},
+	       				{field:'clientid',title:'客户端编号',width:10}
+	       			]]
+				});
+				$("#dg").datagrid("hideColumn", "house_id");
+				$("#dg").datagrid("hideColumn", "owner_id");
+				$("#dg").datagrid("hideColumn", "clientid");
+			}
+		});
+  		
+  		$(document).on("click", "#app", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("app");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","APP消息发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#email", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("email");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","邮件发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#message", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("message");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","短信发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#auto", function(){
+  			var node = $("#tree").tree("getSelected");
+  			$.ajax({
+				url : "festival/taskSearch",
+				type : "POST",
+				data : {"building_id":node.id, "house_dong":node.text},
+				dataType : "json",
+				success : function(data){
+					if (data.status) {
+						var result = data.data;
+						if (result != "") {
+							$("#message_title").val(result.message_title);
+							$("#message_content").val(result.message_content);
+							$("select[name='message_hour']").find("option[value='"+result.message_hour+"']").prop("selected", true);
+							if (result.message_app == "1") {
+								$("input[name='message_app_c']").prop("checked", "true");
+							}
+							if (result.message_mail == "1") {
+								$("input[name='message_mail_c']").prop("checked", "true");
+							}
+							if (result.message_sms == "1") {
+								$("input[name='message_sms_c']").prop("checked", "true");
+							}
+						} else {
+							// 如果没有任务初始化表单
+							$("select[name='message_hour']").find("option[value='1']").prop("selected", true);
+							$("#autoDlgForm")[0].reset();
+						}
+						$("#autoDlg").dialog("open").dialog("center").dialog("setTitle","自动发送设置");
+					} else {
+						$.messager.alert("错误提示", "内部错误,请稍候再试！", "error");
+					}
+				},
+				error : function(XMLHttpRequest, textStatus, errorThrown){
+					$.messager.alert("错误提示", "网络请求错误！", "error");
+				}
+			});
+  		});
+  		
+  		$(document).on("click", "#save", function(){
+  			var rows = $("#dg").datagrid("getSelections");
+  			var mode = $("#mode").val();
+  			var messageContent = $.trim($("#messageContent").val());
+  			var title = $.trim($("#title").val());
+  			var url = "";
+  			if (mode == "app") {
+  				url = "festival/app";
+  			}
+  			if (mode == "email") {
+  				url = "festival/email";
+  			}
+  			if (mode == "message") {
+  				url = "festival/message";
+  			}
+  			if (title != "" && messageContent != "") {
+  				$.ajax({
+  					url : url,
+  					type : "POST",
+  					data : {"data":JSON.stringify(rows), "title":title, "content":messageContent},
+  					dataType : "json",
+  					success : function(data){
+  						if (data.status) {
+  							$.messager.alert("提示信息", data.message ,"info");
+  							$("#title").val("");
+  							$("#messageContent").val("");
+  							$("#dlg").dialog("close");
+  						} else {
+  							$.messager.alert("错误提示", "未能成功发送,请稍候再试！", "error");
+  						}
+  					},
+  					error : function(XMLHttpRequest, textStatus, errorThrown){
+  						$.messager.alert("错误提示", "网络请求错误！", "error");
+  					}
+  				});
+  			}
+  		});
+  		
+  		$(document).on("click", "#autoSubmit", function(){
+  			var node = $("#tree").tree("getSelected");
+  			var message_title = $.trim($("#message_title").val());
+  			var message_content = $.trim($("#message_content").val());
+  			var message_app = $("input[name='message_app_c']").is(":checked");
+  			var message_mail = $("input[name='message_mail_c']").is(":checked");
+  			var message_sms = $("input[name='message_sms_c']").is(":checked");
+  			if (message_app) {
+  				$("#message_app").val("1");
+  			} else {
+  				$("#message_app").val("0");
+  			}
+  			if (message_mail) {
+  				$("#message_mail").val("1");
+  			} else {
+  				$("#message_mail").val("0");
+  			}
+  			if (message_sms) {
+  				$("#message_sms").val("1");
+  			} else {
+  				$("#message_sms").val("0");
+  			}
+  			$("#building_id").val(node.id);
+  			$("#house_dong").val(node.text);
+  			if (message_title != "" && message_content != "") {
+  				$.ajax({
+  					url : "festival/task",
+  					type : "POST",
+  					data : $("#autoDlgForm").serialize(),
+  					dataType : "json",
+  					success : function(data){
+  						if (data.status) {
+  							$.messager.alert("提示信息", data.message ,"info");
+  							$("#autoDlg").dialog("close");
+  						} else {
+  							$.messager.alert("错误提示", "操作失败,请稍候再试！", "error");
+  						}
+  					},
+  					error : function(XMLHttpRequest, textStatus, errorThrown){
+  						$.messager.alert("错误提示", "网络请求错误！", "error");
+  					}
+  				});
+  			}
+  		});
+  	</script>
+  </body>
+</html>

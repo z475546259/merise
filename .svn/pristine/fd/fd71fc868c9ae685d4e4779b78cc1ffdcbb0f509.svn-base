@@ -1,0 +1,394 @@
+package net.merise.platform.utils;
+
+import java.io.FileOutputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+
+import net.merise.platform.dao.estate.pojo.TableParams;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
+
+/**
+ * @ClassName: AutoGenerateSQLMAP 
+ * @Description: 自动生成MyBatis的SQLMAP文件
+ * @author SunXiaoYong.Inc
+ * @date 2016年9月12日 下午3:11:02
+ */
+public class AutoGenerateSQLMAP {
+
+	/**
+	 * 生成XML文件, 只生成常用的5种操作，增删改查(单条/全部)
+	 * @param path 文件全路径
+	 * @param tableName 表名
+	 * @param namespace 对应的DAO路径
+	 * @param type 对应的实体路径
+	 */
+	public static void excute(String path, String tableName, String namespace, String type) {
+		Connection con = null;
+		ResultSet rs = null;
+		ResultSetMetaData data = null;
+		PreparedStatement stmt = null;
+		try {
+			tableName = tableName.toUpperCase();
+			Document document = DocumentHelper.createDocument();
+			document.addDocType("mapper", "-//mybatis.org//DTD Mapper 3.0//EN", "http://mybatis.org/dtd/mybatis-3-mapper.dtd");
+			// SQL语句处理
+			String query = "select * from "+tableName;
+			con = JDBC.getInstance().getConnection();
+			stmt = con.prepareStatement(query);
+			rs = stmt.executeQuery(query);
+			data = rs.getMetaData();
+			String pkName = "";
+			ResultSet pk = con.getMetaData().getPrimaryKeys(con.getCatalog(), null, tableName);
+			while (pk.next()) {
+				pkName = (String) pk.getObject(4);
+			}
+			Console.i("Table ["+tableName+"] Primary key is ["+pkName+"]", AutoGenerateSQLMAP.class);
+			// 根节点
+			Element mapper = document.addElement("mapper");
+			mapper.addAttribute("namespace", namespace);
+			// insert节点
+			Element insert = mapper.addElement("insert");
+			insert.addAttribute("id", "insert");
+			insert.addAttribute("parameterType", type);
+			insert.setText(genInsertSQL(data, tableName));
+			// update节点
+			Element update = mapper.addElement("update");
+			update.addAttribute("id", "update");
+			update.addAttribute("parameterType", type);
+			update.setText(genUpdateSQL(data, tableName, pkName));
+			// delete节点
+			Element delete = mapper.addElement("delete");
+			delete.addAttribute("id", "delete");
+			delete.addAttribute("parameterType", "java.lang.String");
+			delete.setText(genDeleteSQL(tableName, pkName));
+			// 单个查询节点
+			Element selectOne = mapper.addElement("select");
+			selectOne.addAttribute("id", "findDataById");
+			selectOne.addAttribute("parameterType", "java.lang.String");
+			selectOne.addAttribute("resultType", type);
+			selectOne.setText(genQueryOneSQL(tableName, pkName));
+			// 所有查询节点
+			Element selectAll = mapper.addElement("select");
+			selectAll.addAttribute("id", "findAllData");
+			selectAll.addAttribute("resultType", type);
+			selectAll.setText(genQueryAllSQL(tableName));
+			// 总记录条数查询
+			Element selectCount = mapper.addElement("select");
+			selectCount.addAttribute("id", "findCount");
+			selectCount.addAttribute("resultType", "java.lang.Integer");
+			selectCount.setText(genQueryCount(tableName));
+			// 分页查询
+			Element page = mapper.addElement("select");
+			page.addAttribute("id", "findDataByPage");
+			update.addAttribute("parameterType", "java.util.Map");
+			page.addAttribute("resultType", type);
+			page.setText(genQueryByPage(tableName));
+			// 输出XML文件
+			OutputFormat format = new OutputFormat();  
+	        format.setEncoding("utf-8");//设置编码格式  
+	        format.setNewlines(true);
+	        format.setIndent(true); 
+	        format.setIndent("    ");
+	        XMLWriter xmlWriter = new XMLWriter(new FileOutputStream(path+tableName+".xml"), format);
+	        xmlWriter.write(document);  
+	        xmlWriter.close(); 
+		} catch (Exception e) {
+			Console.i(e.getMessage(), AutoGenerateSQLMAP.class);
+			e.printStackTrace();
+		} finally {
+			try {
+				if (rs != null) rs.close();
+				if (stmt != null) stmt.close();
+				if (con != null) con.close();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+			Console.i("Auto Gen Table ["+tableName+"] SQLMAP file is finish", AutoGenerateSQLMAP.class);
+		}
+	}
+	
+	/**
+	 * 自定义生成XML文件，带模糊查询和排序
+	 * @param path 文件全路径
+	 * @param params 参数对象
+	 * @param namespace 对应的DAO路径
+	 * @param type 对应的实体路径
+	 */
+	public static void excute(String path, TableParams params, String namespace, String type) {
+		Connection con = null;
+		ResultSet rs = null;
+		ResultSetMetaData data = null;
+		PreparedStatement stmt = null;
+		try {
+			Document document = DocumentHelper.createDocument();
+			document.addDocType("mapper", "-//mybatis.org//DTD Mapper 3.0//EN", "http://mybatis.org/dtd/mybatis-3-mapper.dtd");
+			// SQL语句处理
+			String query = "select * from "+params.getTableName();
+			con = JDBC.getInstance().getConnection();
+			stmt = con.prepareStatement(query);
+			rs = stmt.executeQuery(query);
+			data = rs.getMetaData();
+			String pkName = "";
+			ResultSet pk = con.getMetaData().getPrimaryKeys(con.getCatalog(), null, params.getTableName());
+			while (pk.next()) {
+				pkName = (String) pk.getObject(4);
+			}
+			Console.i("Table ["+params.getTableName()+"] Primary key is ["+pkName+"]", AutoGenerateSQLMAP.class);
+			// 根节点
+			Element mapper = document.addElement("mapper");
+			mapper.addAttribute("namespace", namespace);
+			// insert节点
+			Element insert = mapper.addElement("insert");
+			insert.addAttribute("id", "insert");
+			insert.addAttribute("parameterType", type);
+			insert.setText(genInsertSQL(data, params.getTableName()));
+			// update节点
+			Element update = mapper.addElement("update");
+			update.addAttribute("id", "update");
+			update.addAttribute("parameterType", type);
+			update.setText(genUpdateSQL(data, params.getTableName(), pkName));
+			// delete节点
+			Element delete = mapper.addElement("delete");
+			delete.addAttribute("id", "delete");
+			delete.addAttribute("parameterType", "java.lang.String");
+			delete.setText(genDeleteSQL(params.getTableName(), pkName));
+			// 单个查询节点
+			Element selectOne = mapper.addElement("select");
+			selectOne.addAttribute("id", "findDataById");
+			selectOne.addAttribute("parameterType", "java.lang.String");
+			selectOne.addAttribute("resultType", type);
+			selectOne.setText(genQueryOneSQL(params.getTableName(), pkName));
+			// 所有查询节点
+			Element selectAll = mapper.addElement("select");
+			selectAll.addAttribute("id", "findAllData");
+			selectAll.addAttribute("resultType", type);
+			if (params.getLikeColumn().length > 0) {
+				selectAll.addAttribute("parameterType", "java.util.Map");
+			}
+			selectAll.setText(genQueryAllSQL(params));
+			// 总记录条数查询
+			Element selectCount = mapper.addElement("select");
+			selectCount.addAttribute("id", "findCount");
+			selectCount.addAttribute("resultType", "java.lang.Integer");
+			if (params.getLikeColumn().length > 0) {
+				selectCount.addAttribute("parameterType", "java.util.Map");
+			}
+			selectCount.setText(genQueryCount(params));
+			// 分页查询
+			Element page = mapper.addElement("select");
+			page.addAttribute("id", "findDataByPage");
+			page.addAttribute("parameterType", "java.util.Map");
+			page.addAttribute("resultType", type);
+			page.setText(genQueryByPage(params));
+			// 输出XML文件
+			OutputFormat format = new OutputFormat();  
+	        format.setEncoding("utf-8");//设置编码格式  
+	        format.setNewlines(true);
+	        format.setIndent(true); 
+	        format.setIndent("    ");
+	        XMLWriter xmlWriter = new XMLWriter(new FileOutputStream(path+params.getTableName()+".xml"), format);
+	        xmlWriter.write(document);  
+	        xmlWriter.close(); 
+		} catch (Exception e) {
+			Console.i(e.getMessage(), AutoGenerateSQLMAP.class);
+			e.printStackTrace();
+		} finally {
+			try {
+				if (rs != null) rs.close();
+				if (stmt != null) stmt.close();
+				if (con != null) con.close();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+			Console.i("Auto Gen Table ["+params.getTableName()+"] SQLMAP file is finish", AutoGenerateSQLMAP.class);
+		}
+	}
+	
+	
+	private static String genInsertSQL(ResultSetMetaData data, String tableName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			String rowName = "";
+			String rowValue = "";
+			for (int i = 1; i <= data.getColumnCount(); i++) {
+				rowName += data.getColumnName(i)+",";
+				rowValue += "#{"+data.getColumnName(i)+"},";
+			}
+			builder.append("insert into "+tableName+" ("+Coder.RemoveLast(rowName)+") values("+Coder.RemoveLast(rowValue)+")");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genUpdateSQL(ResultSetMetaData data, String tableName, String pkName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("update "+tableName+" set ");
+			String content = "";
+			for (int i = 1; i <= data.getColumnCount(); i++) {
+				if (!pkName.equals(data.getColumnName(i))) {
+					content += data.getColumnName(i)+" = #{"+data.getColumnName(i)+"},";
+				}
+			}
+			builder.append(Coder.RemoveLast(content)+" where "+pkName+" = #{"+pkName+"}");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genDeleteSQL(String tableName, String pkName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("delete from "+tableName+" where "+pkName+" = #{"+pkName+"}");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryOneSQL(String tableName, String pkName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select * from "+tableName+" where "+pkName+" = #{"+pkName+"}");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryAllSQL(String tableName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select * from "+tableName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryAllSQL(TableParams params) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select * from "+params.getTableName());
+			if (params.getLikeColumn().length > 0) {
+				builder.append(" where ");
+				if (params.getLikeColumn().length == 1) {
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+					}
+				} else {
+					builder.append("(");
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						if ((i+1) == params.getLikeColumn().length) {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+						} else {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%') or ");
+						}
+					}
+					builder.append(")");
+				}
+			}
+			if (!"".equals(Coder.NullToBlank(params.getOrderColumn()))) {
+				builder.append(" order by "+params.getOrderColumn());
+			}
+			if (!"".equals(Coder.NullToBlank(params.getOrderType()))) {
+				builder.append(" "+params.getOrderType());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryByPage(String tableName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select * from "+tableName+" limit ${m}, ${n}");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryByPage(TableParams params) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select * from "+params.getTableName());
+			if (params.getLikeColumn().length > 0) {
+				builder.append(" where ");
+				if (params.getLikeColumn().length == 1) {
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+					}
+				} else {
+					builder.append("(");
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						if ((i+1) == params.getLikeColumn().length) {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+						} else {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%') or ");
+						}
+					}
+					builder.append(")");
+				}
+			}
+			if (!"".equals(Coder.NullToBlank(params.getOrderColumn()))) {
+				builder.append(" order by "+params.getOrderColumn());
+			}
+			if (!"".equals(Coder.NullToBlank(params.getOrderType()))) {
+				builder.append(" "+params.getOrderType());
+			}
+			builder.append(" limit ${m}, ${n}");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryCount(String tableName) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select count(*) as count from "+tableName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+	
+	private static String genQueryCount(TableParams params) {
+		StringBuilder builder = new StringBuilder();
+		try {
+			builder.append("select count(*) as count from "+params.getTableName());
+			if (params.getLikeColumn().length > 0) {
+				builder.append(" where ");
+				if (params.getLikeColumn().length == 1) {
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+					}
+				} else {
+					builder.append("(");
+					for (int i = 0; i < params.getLikeColumn().length; i++) {
+						if ((i+1) == params.getLikeColumn().length) {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%')");
+						} else {
+							builder.append(params.getLikeColumn()[i]+" like concat('%', "+params.getLikeValue()[i]+",'%') or ");
+						}
+					}
+					builder.append(")");
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
+}

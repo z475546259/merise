@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>移交财务</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+     <div id="contextBox">
+		<table id="dg" title="移交记录表" class="easyui-datagrid" style="min-height: 100vh;" toolbar="#toolbar" pagination="true" rownumbers="true" fitColumns="true" singleSelect="true">
+	  	</table>
+	</div>
+  </body>
+  <script type="text/javascript">
+  	 $(function(){
+  		$("#dg").datagrid({
+			remoteSort:false,
+			nowrap:false,
+			pagination: true, //显示分页
+            pageSize: 10, //页大小
+            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+			url:'trun/findTurnByPage',
+			columns:[[
+				{field:'turn_id',title:'移交编号',width:80},
+				{field:'turn_moneny',title:'移交金额',width:80},
+				{field:'over_people',title:'移交人',width:80},
+				{field:'recipient_perople',title:'接收人',width:50},
+				{field:'turn_time',title:'移交时间',width:80},
+			]]
+		});
+  		$("#dg").datagrid("hideColumn", "turn_id");
+  	 })
+  </script>
+</html>

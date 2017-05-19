@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.BillingTypeDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.BillingType">insert into T_BILLING_TYPE (billing_type_id,building_id,type_name,type_remark,status) values(#{billing_type_id},#{building_id},#{type_name},#{type_remark},#{status})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.BillingType">update T_BILLING_TYPE set building_id = #{building_id},type_name = #{type_name},type_remark = #{type_remark},status = #{status} where billing_type_id = #{billing_type_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_BILLING_TYPE where billing_type_id = #{billing_type_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.BillingType">select * from T_BILLING_TYPE where billing_type_id = #{billing_type_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.BillingType" parameterType="java.util.Map">select * from T_BILLING_TYPE where type_name like concat('%', #{type_name},'%') order by billing_type_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from T_BILLING_TYPE where  building_id = #{building_id} and type_name like concat('%', #{type_name},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.BillingType">select * from T_BILLING_TYPE where building_id = #{building_id} and  type_name like concat('%', #{type_name},'%') order by billing_type_id desc limit ${m}, ${n}</select>
+    
+    <select id="findAllByBuilding" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.BillingType">
+  	  select * from T_BILLING_TYPE where building_id = #{building_id}
+  	  <!-- SELECT * from t_billing_type bt 
+	  left JOIN t_charge_standard cs ON cs.billing_type_id = bt.billing_type_id
+	  WHERE bt.building_id = #{building_id} -->
+    </select>
+    
+</mapper>

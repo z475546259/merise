@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>费用详情</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="费用详情表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<input class="easyui-datetimebox" value="10/11/2012 2:3:56" style="width:200px">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">搜索</a>
+	    </div>
+	</div>
+    
+    <script type="text/javascript">
+    
+    var building_id = "";
+    var dong = "";
+    var building_name = "";
+    var house_id="";
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+		     onClick: function(node){
+		    	 	building_id = node.id;//楼盘id
+		    	 	dong = node.attributes.house_dong;// 栋
+		    	 	building_name = $(this).tree("getParent",node.target).text;
+					if (node.attributes.level == "house") {
+						$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+						$("#contextBox").show();
+						$("#contextBox1").hide();
+		    		 //根据左边栋跟楼盘查询所有业主 
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'payCost/findPayCostItemByPage?building_id='+building_id+'&dong='+dong,
+	        			columns:[[
+	        				{field:'bill_id',title:'缴费编号',width:150},
+	        				{field:'building_name',title:'楼宇名称',width:80},
+	        				{field:'house_dong',title:'栋',width:80},
+	        				{field:'house_units',title:'单元号',width:80},
+	        				{field:'house_floor',title:'楼层号',width:50},
+	        				{field:'house_room',title:'房号',width:80},
+	        				{field:'owner_name',title:'用户姓名',width:80},
+	        				{field:'project_name',title:'缴费项目',width:80},
+	        				{field:'money',title:'缴费金额',width:80},
+	        				{field:'paycost_time',title:'缴费时间',width:80}
+	        			]]
+	        		});
+		    		$("#dg").datagrid("hideColumn", "bill_id"); 
+		         }
+	    	 }
+		 }); 
+	 });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>每日账务明细</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+     <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="每日财务明细表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar" class="import_bar">	
+	  	   <input id="d" class="easyui-datebox" value="" style="width:200px">
+	       <a class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="turnBtn">移交财务</a>
+	    </div>
+	</div>
+	<!-- 移交财务 -->
+	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:10px">
+	                <input name="over_people" class="easyui-textbox" required="true" label="移交人" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="recipient_perople" class="easyui-textbox" required="true" label="接收人" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="turn_moneny" class="easyui-textbox" required="true" label="移交金额" style="width:100%">
+	            </div>
+	        </form>
+	 </div>	
+	 <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+    </div>
+    <script type="text/javascript">
+    var building_id = "";
+    var dong = "";
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+		     onClick: function(node){
+		    	 	building_id = node.id;//楼盘id
+		    	 	dong = node.attributes.house_dong;// 栋
+		    	 	building_name = $(this).tree("getParent",node.target).text;
+		    	 	$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+					//根据左边栋跟楼盘查询所有业主 
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'payCost/findPayCostByPageOfDay?building_id='+building_id+'&dong='+dong,
+	        			columns:[[
+	        				{field:'building_id',title:'楼盘编号',width:80},
+	        				{field:'paycost_id',title:'缴费编号',width:80},
+	        				/* {field:'building_name',title:'楼盘编号',width:80},
+	        				{field:'house_dong',title:'楼盘编号',width:80}, */
+	        				{field:'house_units',title:'单元号',width:80},
+	        				{field:'house_floor',title:'楼层号',width:50},
+	        				{field:'house_room',title:'房号',width:80},
+	        				{field:'owner_name',title:'用户姓名',width:80},
+	        				/* {field:'paycost_project',title:'缴费项目',width:80}, */
+	        				{field:'paycost_way',title:'缴费方式',width:80},
+	        				{field:'paycost_moneny',title:'缴费金额',width:80},
+	        				{field:'paycost_balance',title:'用户余额',width:80},
+	        				{field:'paycost_time',title:'缴费时间',width:80}
+	        			]],
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'building_id');
+		    		$("#dg").datagrid('hideColumn', 'paycost_id');
+	    	 }
+		 }); 
+		 
+		 //移交财务
+		 $("#turnBtn").click(function(){
+			 $("#dlg").dialog("open").dialog("center").dialog("setTitle","移交财务");
+		 })
+		 
+		 $("#save").click(function(){
+			 $("#fm").form("submit",{
+	                url: 'trun/saveTrue',
+	                onSubmit: function(){
+	                    return $(this).form("validate");
+	                },
+	                success: function(result){
+	                   $("#dlg").dialog("close");
+	                   $("#dg").datagrid("reload");
+	                }
+	            });
+		 })
+		 
+		 $("#d").datebox({
+			 onSelect:function(date){
+				 var d = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
+				 $("#dg").datagrid({
+					 url:'payCost/findPayCostByPageOfDay?building_id='+building_id+'&dong='+dong+'&d='+d
+				 })
+			 }
+		 })
+	 });
+    </script>
+  </body>
+</html>

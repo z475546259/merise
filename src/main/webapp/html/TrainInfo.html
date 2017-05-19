@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>index.html</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<table id="dg" title="培训信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+  		url="train/index"
+  		toolbar="#toolbar" pagination="true"
+  		rownumbers="true" fitColumns="true" singleSelect="true">
+  		<thead>
+  			<tr>
+  				<th field="train_id" width="10%" align="center" hidden="true">编号</th>
+  				<th field="train_name" width="20%" align="center">培训名称</th>
+  				<th field="train_info_name" width="30%" align="center">培训题目</th>
+  				<th field="train_time" width="20%" align="center">培训时间</th>
+  				<th field="estate_name" width="20%" align="center">物业名称</th>
+  				<th field="estate_id" width="20%" hidden="true" align="center">物业编号</th>
+  				<th field="train_content" hidden="true" width="20%" hidden="true" align="center">物业内容</th>
+  			</tr>
+  		</thead>
+  	</table>
+  	<div id="toolbar">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">查看内容</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-user" plain="true" id="train_people">参加人员</a>
+        <input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入培训名称或题目"   style="width: 150px; vertical-align: middle;"/>
+    </div>
+    
+    <div id="toolbar1">
+        <input id="ssEmp" class="easyui-searchbox"  searcher="doSearch1"  prompt="请输员工名称"   style="width: 150px; vertical-align: middle;"/>
+    </div>
+  	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">培训信息</div>
+            <div style="margin-bottom:10px">
+                <input name="train_name" class="easyui-textbox" required="true" label="培训名称:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_info_name" class="easyui-textbox" required="true" label="培训题目:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_content" class="easyui-textbox" data-options="multiline:true" required="true" label="培训内容:" style="width:100%;height: 100px;">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="time" id="time" class="easyui-datetimebox" data-options="editable:false" required="true" label="培训时间:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+            	<select name="estate_id"  id="estateAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="物业:" ></select>
+            </div>
+        </form>
+    </div>
+    <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+    </div>
+    
+    <div id="dlg1" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg1-buttons">
+        <form id="fm1" method="post" novalidate style="margin:0;padding:20px 50px">
+            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">培训信息</div>
+            <div style="margin-bottom:10px">
+                <input name="train_name" class="easyui-textbox" required="true" label="培训名称:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_info_name" class="easyui-textbox" required="true" label="培训题目:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_content" class="easyui-textbox" data-options="multiline:true" required="true" label="培训内容:" style="width:100%;height: 100px;" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="time" id="time1" class="easyui-datetimebox" data-options="editable:false" required="true" label="培训时间:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+            	<input name="estate_name" class="easyui-textbox" style="width:100%;" required="true" label="物业:" disabled="disabled"></select>
+            </div>
+        </form>
+    </div>
+    <div id="dlg1-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg1').dialog('close')" style="width:90px">取消</a>
+    </div>
+    
+    <div id="dlg2" class="easyui-dialog" style="width:600px" closed="true" buttons="#dlg2-buttons">
+        <form id="fm2" method="post" novalidate style="margin:0;padding:20px 50px">
+            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">培训信息</div>
+            <div style="margin-bottom:10px">
+                <input name="train_name" class="easyui-textbox" required="true" label="培训名称:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_info_name" class="easyui-textbox" required="true" label="培训题目:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="train_content" class="easyui-textbox" data-options="multiline:true" required="true" label="培训内容:" style="width:100%;height: 100px;" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="time" id="time2" class="easyui-datetimebox" data-options="editable:false" required="true" label="培训时间:" style="width:100%" disabled="disabled">
+            </div>
+            <div style="margin-bottom:10px">
+            	<input name="estate_name" class="easyui-textbox" style="width:100%;" required="true" label="物业:" disabled="disabled"></select>
+            </div>
+            
+            <div style="margin-bottom:10px">
+            	<select name="building_id"  id="building" data-options="editable:false" style="width:100%;" required="true" label="楼盘:" ></select>
+            </div>
+            
+            <div style="margin-bottom:20px;margin-top:20px;;font-size:14px;border-bottom:1px solid #ccc">人员信息</div>
+            <table id="dg1" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar1" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择楼盘</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+        </form>
+    </div>
+    <div id="dlg2-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg2').dialog('close')" style="width:90px">取消</a>
+    </div>
+    
+    <script type="text/javascript">
+    function doSearch(value){ //点击搜素,触发此函数
+        $("#dg").datagrid({  
+            url:'train/index?searchValue='+value //触发此action,带上参数searcValue  
+        });
+    }
+    function doSearch1(value){ //点击搜素,触发此函数
+    	var row = $("#dg").datagrid("getSelected");
+    	var building_id = $('#building').combobox('getValue');
+
+         $("#dg1").datagrid({  
+            url:'train/findEmp?estate_id='+row.estate_id+'&building_id='+building_id+'&searchValue='+value+'&train_id='+row.train_id //触发此action,带上参数searcValue  
+        }); 
+    }
+    $('#estateAllCombobox').combobox({
+   		url:'estateBuildingDetail/findEstateAll',
+   		valueField:'estate_id',
+   		textField:'estate_name'
+   	});
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新增培训信息");
+             $("#fm").form("clear");
+             url = "train/save";
+    	});
+		$(document).on("click", "#edit", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg").dialog("open").dialog("center").dialog("setTitle","修改培训信息");
+                $("#fm").form("load",row);
+                
+                $("#time").datetimebox("setValue", row.train_time);
+                
+                url = "train/update?id="+row.train_id;
+            }
+    	});
+		
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("提示信息","是否确认删除该信息?",function(r){
+                    if (r){
+                        $.post("train/delete",{id:row.train_id},function(result, status){
+                        	
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#dlg").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		$(document).on("click", "#detail", function(){
+			var datagrid; //定义全局变量datagrid
+			var row = $("#dg").datagrid("getSelected");
+			if(row){
+				$("#dlg1").dialog("open").dialog("center").dialog("setTitle","培训详情");
+	            $("#fm1").form("load",row);
+	            $("#time1").datetimebox("setValue", row.train_time);
+			}
+		});
+		
+		$(document).on("click","#train_people", function(){
+			var datagrid; //定义全局变量datagrid
+			var row = $("#dg").datagrid("getSelected");
+			if(row){
+				$("#dlg2").dialog("open").dialog("center").dialog("setTitle","培训人员管理");
+				$("#fm2").form("load",row);
+	            $("#time2").datetimebox("setValue", row.train_time);
+	            
+	            $('#dg1').datagrid('loadData',{total:0,rows:[]});
+	            $('#ssEmp').searchbox('setValue', null);
+	            
+	            $('#building').combobox({
+	           		url:'estateBuildingDetail/findBuildingByEstateId?id='+row.estate_id,
+	           		valueField:'building_id',
+	           		textField:'building_name',
+	           		onChange:function(n,o){
+	           			 var building_id=$('#building').combobox('getValue');
+	           			 var estate_id=row.estate_id;
+	           			 
+	           			$("#dg1").datagrid({
+	            			remoteSort:false,
+	            			nowrap:false,
+	            			pagination: true, //显示分页
+	            			pageSize: 5, //页大小
+	                        pageList: [5, 10, 15, 20, 25], //页大小下拉选项此项各value是pageSize的倍数
+	            			url:'train/findEmp?estate_id='+estate_id+'&building_id='+building_id+'&train_id='+row.train_id,
+	            			columns:[[
+	            				{field:'employees_id',title:'员工编号',width:120},
+	            				{field:'employees_name',title:'员工姓名',width:80},
+	            				{field:'employees_dept_text',title:'部门',width:80},
+	            				{field:'employees_job',title:'岗位',width:80},
+	            				{field:'remark',title:'培训编号',width:80},
+	            				{field:'status_value',title:'状态',width:80},
+	            				{field:'building_id',title:'楼盘编号',width:80},
+	            				{field:'opt',title:'操作',width:80,align:'center',  
+	            		            formatter:function(value,rec){  
+	            		                var btn = '<a class="editcls" onclick="addOrRemove()" href="javascript:void(0)">加入/移除</a>';  
+	            		                return btn;  
+	            		            }  
+	            		        }
+	            			]]
+	            		});
+	            		$("#dg1").datagrid('hideColumn', 'remark');
+			    		$("#dg1").datagrid('hideColumn', 'building_id');
+			    		$("#dg1").datagrid('hideColumn', 'employees_id');
+	           		}
+	           	});
+			}
+		});
+		
+		function addOrRemove(){
+			var rowTrain = $("#dg").datagrid("getSelected");
+			var rowEmp = $("#dg1").datagrid("getSelected");
+			
+			if(rowEmp.status_value == "已参加"){
+				$.post("train/removeEmp",{employees_id:rowEmp.employees_id,remark:rowTrain.train_id},function(result, status){
+					
+                },"json");
+			}else if(rowEmp.status_value == "未参加"){
+				$.post("train/addEmp",{
+														train_id:rowTrain.train_id,
+														train_name:rowTrain.train_name,
+														train_time:rowTrain.train_time,
+														employees_id:rowEmp.employees_id
+														},function(result, status){
+                },"json");
+			}
+			$("#dg1").datagrid("reload");
+		}
+    </script>
+  </body>
+</html>

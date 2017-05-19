@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.AnnouncementDao">
+   
+   <select id="findCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*) from T_ANNOUNCEMENT
+	</select>
+   
+   <select id="findAnnouncementByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.Announcement">
+		SELECT a.*,b.building_name from T_ANNOUNCEMENT  a
+		JOIN estate_building_detail b ON a.building_id = b.building_id where status = 0
+		ORDER BY a.createtime DESC
+		LIMIT ${m}, ${n}
+	</select>
+	
+	<insert id="save" parameterType="net.merise.platform.dao.estate.pojo.Announcement">
+		insert into T_ANNOUNCEMENT(id,type,building_id,house_dong,title,content,is_send,send_time,priority,status,createtime)
+		values(#{id},#{type},#{building_id},#{house_dong},#{title},#{content},#{is_send},#{send_time},#{priority},#{status},#{createtime})
+	</insert>
+	
+	<update id="edit" parameterType="net.merise.platform.dao.estate.pojo.Announcement">
+		update T_ANNOUNCEMENT 
+		set type = #{type},building_id = #{building_id},house_dong = #{house_dong},title = #{title},content = #{content},is_send = #{is_send},send_time = #{send_time},priority = #{priority}
+		,status = #{status},createtime = #{createtime} 
+		where id = #{id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">delete from T_ANNOUNCEMENT where id = #{id}</delete>
+	
+	<delete id="deleteByBuildingId" parameterType="java.lang.String">delete from T_ANNOUNCEMENT where building_id = #{building_id}</delete>
+	
+	<select id="findDataByBuildingId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.Announcement">
+		select * from T_ANNOUNCEMENT where building_id = #{building_id} order by send_time desc 
+	</select>
+</mapper>

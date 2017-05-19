@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.IMessageTaskDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.TMessageTask">insert into T_MESSAGE_TASK (message_id,message_title,message_content,message_hour,message_app,message_mail,message_sms,message_status,building_id,house_dong,create_user,create_date) values(#{message_id},#{message_title},#{message_content},#{message_hour},#{message_app},#{message_mail},#{message_sms},#{message_status},#{building_id},#{house_dong},#{create_user},#{create_date})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.TMessageTask">update T_MESSAGE_TASK set message_title = #{message_title},message_content = #{message_content},message_hour = #{message_hour},message_app = #{message_app},message_mail = #{message_mail},message_sms = #{message_sms},message_status = #{message_status},building_id = #{building_id},house_dong = #{house_dong},create_user = #{create_user},create_date = #{create_date} where message_id = #{message_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_MESSAGE_TASK where message_id = #{message_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.TMessageTask">select * from T_MESSAGE_TASK where message_id = #{message_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.TMessageTask">select * from T_MESSAGE_TASK where message_status = 0</select>
+    <select id="findCount" resultType="java.lang.Integer">select count(*) as count from T_MESSAGE_TASK</select>
+    <select id="findDataByPage" resultType="net.merise.platform.orm.base.TMessageTask">select * from T_MESSAGE_TASK limit ${m}, ${n}</select>
+    <select id="findDataByParams" resultType="net.merise.platform.orm.base.TMessageTask" parameterType="java.util.Map">
+    	select * from T_MESSAGE_TASK where message_status = 0 and building_id = #{building_id} and house_dong = #{house_dong}
+    </select>
+    <select id="findDataByHour" resultType="net.merise.platform.orm.base.TMessageTask" parameterType="java.lang.String">
+    	select * from T_MESSAGE_TASK where message_status = 0 and message_hour = #{message_hour}
+    </select>
+</mapper>

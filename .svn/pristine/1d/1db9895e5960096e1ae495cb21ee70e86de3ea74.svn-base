@@ -1,0 +1,228 @@
+package net.merise.platform.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.merise.platform.dao.estate.pojo.EstateCodeDetail;
+import net.merise.platform.dao.estate.pojo.EstateHouseDetail;
+import net.merise.platform.service.estate.EstateCodeEetailService;
+import net.merise.platform.service.estate.EstateHouseDetailService;
+import net.merise.platform.utils.Coder;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+@RequestMapping("/estateHouse")
+@Transactional
+public class EstateHouseDetailController {
+	
+	@Autowired
+	private EstateHouseDetailService estateHouseDetailService;
+	
+	@Autowired
+	private EstateCodeEetailService estateCodeEetailService;
+	
+	@RequestMapping("/index")
+	public @ResponseBody Map<String, Object> findAllEstate(int page, int rows,String searchValue,String building_id,String dong){
+		searchValue=searchValue==null?"":searchValue;
+		int m = (page - 1) * rows;
+		Map<String, Object> dataMap = new HashMap<String, Object>();
+		dataMap.put("m", m);
+		dataMap.put("n", rows);
+		dataMap.put("house_location", searchValue);
+		dataMap.put("id", building_id);
+		dataMap.put("dong", dong);
+		
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("total", estateHouseDetailService.findCount(dataMap));
+		resultMap.put("rows", estateHouseDetailService.findDataByPage(dataMap));
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 保存房屋
+	 * @param estateHouse
+	 */
+	@RequestMapping("/save")
+	@ResponseBody
+	public String save(EstateHouseDetail estateHouse){
+		estateHouse.setHouse_id(Coder.getSerialCode20());
+		//判断房屋是否存在
+		boolean isExists =estateHouseDetailService.isExists(estateHouse);
+		if(!isExists){
+			estateHouse.setHouse_location(estateHouse.getHouse_dong()+"-"+estateHouse.getHouse_units()+"-"+estateHouse.getHouse_floor()+"-"+estateHouse.getHouse_room());
+			estateHouseDetailService.insert(estateHouse);
+			return "保存房屋成功!";
+		}
+		return "该房屋已存在";
+	}
+	
+	@RequestMapping("/update")
+	@ResponseBody
+	public void update(EstateHouseDetail estateHouse,String id){
+		estateHouse.setHouse_id(id);
+		estateHouse.setHouse_location(estateHouse.getHouse_dong()+"-"+estateHouse.getHouse_units()+"-"+estateHouse.getHouse_floor()+"-"+estateHouse.getHouse_room());
+		estateHouseDetailService.update(estateHouse);
+	}
+	
+	@RequestMapping("/delete")
+	@ResponseBody
+	public void delete(String id){
+		estateHouseDetailService.delete(id);
+	}
+	
+	@RequestMapping("/findDongInfo")
+	public @ResponseBody Map<String, Object> findDongInfo(int page, int rows,String building_id){
+		int m = (page - 1) * rows;
+		Map<String, Object> dataMap = new HashMap<String, Object>();
+		dataMap.put("m", m);
+		dataMap.put("n", rows);
+		dataMap.put("building_id", building_id);
+		
+		
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		
+		List<Map<String, Object>> mapData = estateHouseDetailService.findByBuildingAndDong(dataMap);
+		resultMap.put("total", mapData.size());
+		resultMap.put("rows", mapData);
+		
+		return resultMap;
+	}
+	
+	@RequestMapping("/findBuildingCode")
+	public @ResponseBody List<EstateCodeDetail> findBuildingCode(String building_id){
+		Map<String, Object> dataMap = new HashMap<String, Object>();
+		dataMap.put("code_name1","房屋户型");
+		dataMap.put("code_name2","物业类型");
+		dataMap.put("building_id", building_id);
+		
+		return estateCodeEetailService.findByCodeNameAndBuildings(dataMap);
+	}
+	
+	@RequestMapping("/initHouse")
+	@ResponseBody
+	public void initHouse(String building_idInit,String dong_name,String floor,String unit,String house_sort,String floor_count,String[] house_type,String[] house_build_area,String[] house_in_area){
+		
+		Map<String, Object> map = new HashMap<String,Object>();
+		map.put("building_id", building_idInit);
+		map.put("house_dong", dong_name);
+		map.put("house_units", unit);
+		
+		Map<String, Object> mapCode = new HashMap<String,Object>();
+		mapCode.put("code_name1", "房屋状态");
+		mapCode.put("code_name2", "");
+		mapCode.put("building_id", building_idInit);
+		
+		String status_id = "";
+		List<EstateCodeDetail> list = estateCodeEetailService.findByCodeNameAndBuildings(mapCode);
+		for (EstateCodeDetail estateCodeDetail : list) {
+			if(estateCodeDetail.getCode_content().equals("待售")){
+				status_id = estateCodeDetail.getCode_id();
+			}
+		}
+		
+		estateHouseDetailService.deleteByBuildingAndDongAndUnits(map);
+		for (int i = 1; i <= Integer.parseInt(floor); i++) {//循环楼层
+			
+			for (int j = 1; j <= Integer.parseInt(floor_count); j++) {//循环每层户数
+				EstateHouseDetail estateHouseDetail = new EstateHouseDetail();
+				estateHouseDetail.setHouse_id(Coder.getSerialCode20());
+				estateHouseDetail.setBuilding_id(building_idInit);
+				estateHouseDetail.setHouse_dong(dong_name);
+				estateHouseDetail.setHouse_units(unit);
+				estateHouseDetail.setHouse_floor(i+"");
+				estateHouseDetail.setHouse_room(i+"0"+j);
+				estateHouseDetail.setHouse_type(house_type[j-1]);
+				estateHouseDetail.setHouse_build_area(house_build_area[j-1]);
+				estateHouseDetail.setHouse_in_area(house_in_area[j-1]);
+				estateHouseDetail.setHouse_sort(house_sort);
+				estateHouseDetail.setHouse_status(status_id);
+				estateHouseDetail.setHouse_location(estateHouseDetail.getHouse_dong()+"-"+estateHouseDetail.getHouse_units()+"-"+estateHouseDetail.getHouse_floor()+"-"+estateHouseDetail.getHouse_room());
+				estateHouseDetailService.insert(estateHouseDetail);
+			}
+		}
+	}
+	@RequestMapping("/initPark")
+	@ResponseBody
+	public void initPark(String park_style,String length, String width,String building_idInit2,String area_name,int begin_number,int end_number,String park_statu){
+		
+		Map<String, Object> map = new HashMap<String,Object>();
+		map.put("building_id", building_idInit2);
+		map.put("house_dong", area_name);
+		map.put("house_units", "1");
+		
+		Map<String, Object> mapCode = new HashMap<String,Object>();
+		mapCode.put("code_name1", "房屋状态");
+		mapCode.put("code_name2", "");
+		mapCode.put("building_id", building_idInit2);
+		
+		String status_id = "";
+		List<EstateCodeDetail> list = estateCodeEetailService.findByCodeNameAndBuildings(mapCode);
+		for (EstateCodeDetail estateCodeDetail : list) {
+			if(estateCodeDetail.getCode_content().equals("待售")){
+				status_id = estateCodeDetail.getCode_id();
+			}
+		}
+		System.out.println("车库信息来了");
+		estateHouseDetailService.deleteByBuildingAndDongAndUnits(map);
+		for (int i = begin_number; i <= end_number; i++) {//循环车位
+			
+//			for (int j = 1; j <= Integer.parseInt(floor_count); j++) {//循环每层户数
+				EstateHouseDetail estateHouseDetail = new EstateHouseDetail();
+				estateHouseDetail.setHouse_id(Coder.getSerialCode20());
+				estateHouseDetail.setBuilding_id(building_idInit2);
+				estateHouseDetail.setHouse_dong(area_name);
+				estateHouseDetail.setHouse_units("1");
+				estateHouseDetail.setHouse_floor(1+"");
+				estateHouseDetail.setHouse_room(i+"");
+				estateHouseDetail.setHouse_type("1");
+				estateHouseDetail.setHouse_build_area(length);
+				estateHouseDetail.setHouse_in_area(width);
+				estateHouseDetail.setHouse_sort(park_style);
+				estateHouseDetail.setHouse_status(park_statu);
+				estateHouseDetail.setHouse_location(estateHouseDetail.getHouse_dong()+"-"+estateHouseDetail.getHouse_room());
+				estateHouseDetailService.insert(estateHouseDetail);
+//			}
+		}
+	}
+	
+	@RequestMapping("/findDong")
+	private @ResponseBody List<Map<String, Object>> findDong(String building_id){
+		List<String> list = estateHouseDetailService.findDong(building_id);
+		
+		List<Map<String, Object>> mapData = new ArrayList<Map<String, Object>>();
+		for (String str : list) {
+			Map<String, Object> map = new HashMap<String,Object>();
+			map.put("key", str);
+			map.put("value", str);
+			mapData.add(map);
+		}
+		return mapData;
+	}
+	
+	@RequestMapping("/findUnits")
+	private @ResponseBody List<Map<String, Object>> findUnits(String building_id,String dong){
+		Map<String, Object> mapPara = new HashMap<String,Object>();
+		mapPara.put("building_id", building_id);
+		mapPara.put("house_dong", dong);
+		return estateHouseDetailService.findUtil(mapPara);
+	}
+	
+	@RequestMapping("/findFloor")
+	private @ResponseBody List<Map<String, Object>> findFloor(String building_id,String dong,String units,String starFloor){
+		Map<String, Object> mapPara = new HashMap<String,Object>();
+		mapPara.put("building_id", building_id);
+		mapPara.put("house_dong", dong);
+		mapPara.put("house_units", units);
+		mapPara.put("starFloor", starFloor);
+		return estateHouseDetailService.findFloors(mapPara);
+	}
+	
+}

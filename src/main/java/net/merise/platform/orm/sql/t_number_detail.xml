@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.merise.platform.orm.mapper.NumberDetailDAO">
+	<insert id="insert" parameterType="net.merise.platform.orm.base.NumberDetail">
+		insert into 
+			T_NUMBER_DETAIL(detail_id,house_number_id,electricity_start,electricity_end,water_start,water_end,gas_start,gas_end,create_time,status,remark)
+		values
+			(#{detail_id},#{house_number_id},#{electricity_start},#{electricity_end},#{water_start},#{water_end},#{gas_start},#{gas_end},#{create_time},#{status},#{remark})
+	</insert>
+	
+	<update id="update" parameterType="net.merise.platform.orm.base.NumberDetail">
+		update T_NUMBER_DETAIL set electricity_end = #{electricity_end},water_end = #{water_end},gas_end = #{gas_end} where detail_id = #{detail_id}
+	</update>
+	
+	<select id="getNumberDetail" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.NumberDetail">
+		SELECT nd.* from T_HOUSE_NUMBER hn
+		JOIN T_NUMBER_DETAIL nd ON nd.house_number_id = hn.house_number_id
+		WHERE 
+			hn.electricity_number = #{electricity_number} and hn.water_number = #{water_number} and hn.gas_number = #{gas_number} and hn.nper = #{nper}
+	</select>
+	
+	
+</mapper>

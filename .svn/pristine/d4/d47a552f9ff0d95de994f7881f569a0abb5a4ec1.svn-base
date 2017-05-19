@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.OwnerDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.EstateOwnerDetail">insert into ESTATE_OWNER_DETAIL (owner_id,owner_name,owner_mobile,owner_idcard,owner_status,owner_family,owner_level,owner_bank_account,owner_bank_name,owner_bank_branch,owner_remark,owner_email,status) values(#{owner_id},#{owner_name},#{owner_mobile},#{owner_idcard},#{owner_status},#{owner_family},#{owner_level},#{owner_bank_account},#{owner_bank_name},#{owner_bank_branch},#{owner_remark},#{owner_email},#{status})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.EstateOwnerDetail">update ESTATE_OWNER_DETAIL set owner_name = #{owner_name},owner_mobile = #{owner_mobile},owner_idcard = #{owner_idcard},owner_status = #{owner_status},owner_family = #{owner_family},owner_level = #{owner_level},owner_bank_account = #{owner_bank_account},owner_bank_name = #{owner_bank_name},owner_bank_branch = #{owner_bank_branch},owner_remark = #{owner_remark},owner_email = #{owner_email} where owner_id = #{owner_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_OWNER_DETAIL where owner_id = #{owner_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateOwnerDetail">select * from ESTATE_OWNER_DETAIL where owner_id = #{owner_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.EstateOwnerDetail" parameterType="java.util.Map">select * from ESTATE_OWNER_DETAIL where (owner_name like concat('%', #{owner_name},'%') or owner_mobile like concat('%', #{owner_mobile},'%') or owner_idcard like concat('%', #{owner_idcard},'%')) order by owner_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from ESTATE_OWNER_DETAIL where (owner_name like concat('%', #{owner_name},'%') or owner_mobile like concat('%', #{owner_mobile},'%') or owner_idcard like concat('%', #{owner_idcard},'%'))</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateOwnerDetail">select * from ESTATE_OWNER_DETAIL where (owner_name like concat('%', #{owner_name},'%') or owner_mobile like concat('%', #{owner_mobile},'%') or owner_idcard like concat('%', #{owner_idcard},'%')) order by owner_id desc limit ${m}, ${n}</select>
+    
+     <select id="findOwnerByDong" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateOwnerDetail">
+    	select a.*,b.*,c.*,
+		(select d.code_content from ESTATE_CODE_DETAIL d where a.house_status=d.code_id)  as house_status_text,
+		(select d.code_content from ESTATE_CODE_DETAIL d where c.owner_level=d.code_id)  as owner_level_text,
+		(select d.code_content from ESTATE_CODE_DETAIL d where a.house_sort=d.code_id)  as house_sort_text,
+		(select s.client_id from T_USER_EXTEND s where c.owner_id = s.owner_id) as clientid 
+		from ESTATE_HOUSE_DETAIL a,ESTATE_OWNER_HOUSE_DETAIL b,ESTATE_OWNER_DETAIL c where c.status='0' and a.house_id=b.house_id and b.owner_id=c.owner_id and
+    	(c.owner_name like concat('%', #{owner_name},'%') or c.owner_mobile like concat('%', #{owner_mobile},'%') or c.owner_idcard like concat('%', #{owner_idcard},'%'))
+    	and a.building_id=#{building_id} and a.house_dong=#{dong} order by c.owner_id desc limit ${m}, ${n}
+    </select>
+    
+    <select id="findCountOwnerByDong" parameterType="java.util.Map" resultType="java.lang.Integer">
+    	select count(*) from ESTATE_HOUSE_DETAIL a,ESTATE_OWNER_HOUSE_DETAIL b,ESTATE_OWNER_DETAIL c where a.house_id=b.house_id and b.owner_id=c.owner_id and 
+    	(c.owner_name like concat('%', #{owner_name},'%') or c.owner_mobile like concat('%', #{owner_mobile},'%') or c.owner_idcard like concat('%', #{owner_idcard},'%'))
+    	and a.building_id=#{building_id} and a.house_dong=#{dong}
+    </select>
+    
+    <insert id="insertOwnerHouseDetail" parameterType="net.merise.platform.orm.base.OwnerHouseDetail">
+    	insert into ESTATE_OWNER_HOUSE_DETAIL(id,owner_id,house_id,garage_start_date,car_num,contract_time,house_time,decorate_time,live_time) 
+    	values(#{id},#{owner_id},#{house_id},#{garage_start_date},#{car_num},#{contract_time},#{house_time},#{decorate_time},#{live_time})
+    </insert>
+    
+    <select id="findByIdcard" resultType="net.merise.platform.orm.base.EstateOwnerDetail" parameterType="java.lang.String">
+    	select * from ESTATE_OWNER_DETAIL where owner_idcard=#{owner_idcard}
+    </select>
+    
+    <update id="updateOwnerHouseDetail" parameterType="net.merise.platform.orm.base.OwnerHouseDetail">
+    	update ESTATE_OWNER_HOUSE_DETAIL set garage_start_date=#{garage_start_date},contract_time=#{contract_time},house_time=#{house_time},decorate_time=#{decorate_time},
+    		live_time=#{live_time} where id=#{id}
+    </update>
+    
+    <delete id="deleteOwnerHouseDetail" parameterType="java.lang.String">
+    	delete from ESTATE_OWNER_HOUSE_DETAIL where id=#{id}
+    </delete>
+    
+    <select id="findLiveUserByHouseId" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.OwnerHouseDetail" >
+    	select * from ESTATE_OWNER_HOUSE_DETAIL where house_id=#{house_id}
+    </select>
+    
+    <update id="updateLiveOwnerHouseDetailByHouse_id" parameterType="net.merise.platform.orm.base.OwnerHouseDetail">
+    	update ESTATE_OWNER_HOUSE_DETAIL set live_name=#{live_name},live_mobile=#{live_mobile},live_idcard=#{live_idcard},owner_relation=#{owner_relation},
+    		living_email=#{living_email} where house_id=#{house_id}
+    </update>
+    
+    <update id="updateCarNumByHouseId"  parameterType="java.lang.String">
+    	update ESTATE_OWNER_HOUSE_DETAIL set car_num=#{car_num},charge_standard=#{charge_standard} where  house_id=#{house_id}
+    </update>
+    
+    <update id="updateTransferHouse"  parameterType="java.util.Map">
+    	update ESTATE_OWNER_HOUSE_DETAIL set termination_time=#{termination_time},termination_reason=#{termination_reason} where id=#{id}
+    </update>
+    
+    <update id="updateStatusByOwnerId">
+    	update ESTATE_OWNER_DETAIL set status=#{status} where owner_id=#{owner_id}
+    </update>
+    
+    <select id="findDataForValidate" resultType="net.merise.platform.orm.base.EstateOwnerDetail" parameterType="net.merise.platform.orm.base.EstateOwnerDetail">
+    	select * from ESTATE_OWNER_DETAIL where owner_name = #{owner_name} and owner_mobile = #{owner_mobile} and owner_idcard = #{owner_idcard} order by owner_id desc
+    </select>
+    
+    <select id="findByHouseId" resultType="net.merise.platform.orm.base.OwnerHouseDetail" parameterType="java.lang.String">
+    	SELECT * from estate_house_detail a
+		JOIN estate_owner_house_detail b ON b.house_id = a.house_id
+		WHERE a.house_id = #{house_id}
+    </select>
+    
+    <select id="getOwnerDetail1" parameterType="java.util.Map" resultType="java.util.Map">
+    	SELECT e.*,o.house_id from ESTATE_HOUSE_DETAIL h
+		JOIN ESTATE_OWNER_HOUSE_DETAIL o ON o.house_id = h.house_id
+		JOIN ESTATE_OWNER_DETAIL e ON o.owner_id = e.owner_id
+		WHERE h.house_location = #{house_location}
+    </select>
+    <select id="updateMoneyById" parameterType="java.util.Map">
+    	update ESTATE_OWNER_DETAIL set money = #{money} where owner_id = #{owner_id}
+    </select>
+    
+    <delete id="deleteByHouseId" parameterType="java.lang.String">
+    	delete from ESTATE_OWNER_HOUSE_DETAIL where house_id=#{house_id}
+    </delete>
+</mapper>

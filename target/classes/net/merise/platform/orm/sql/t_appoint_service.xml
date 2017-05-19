@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.AppointServiceDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.AppointService">insert into T_APPOINT_SERVICE (service_id,service_picurl,service_name,start_time,end_time,charge_standard,service_phone,service_des,building_id) values(#{service_id},#{service_picurl},#{service_name},#{start_time},#{end_time},#{charge_standard},#{service_phone},#{service_des},#{building_id})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.AppointService">update T_APPOINT_SERVICE set service_picurl = #{service_picurl},service_name = #{service_name},start_time = #{start_time},end_time = #{end_time},charge_standard = #{charge_standard},service_phone = #{service_phone},service_des = #{service_des},building_id = #{building_id} where service_id = #{service_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_APPOINT_SERVICE where service_id = #{service_id}</delete>
+    <delete id="deleteByBuildingId" parameterType="java.lang.String">delete from T_APPOINT_SERVICE where building_id = #{building_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.AppointService">select * from T_APPOINT_SERVICE where service_id = #{service_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.AppointService" parameterType="java.util.Map">select * from T_APPOINT_SERVICE where service_name like concat('%', #{service_name},'%') order by service_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from T_APPOINT_SERVICE where building_id=#{building_id} and  service_name like concat('%', #{service_name},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.AppointService">select * from T_APPOINT_SERVICE where building_id=#{building_id} and service_name like concat('%', #{service_name},'%') order by service_id desc limit ${m}, ${n}</select>
+    <select id="findDataByBuildingId" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.AppointService">
+    	select * from T_APPOINT_SERVICE where building_id = #{building_id} order by end_time
+    </select>
+</mapper>

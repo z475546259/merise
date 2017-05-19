@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>公告记录</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+    <div id="contextBox">
+    	<table id="dg" title="公告列表" class="easyui-datagrid" style="min-height: 100vh;" rownumbers="true" fitColumns="true">
+	  	</table>
+    </div>
+  </body>
+  <script type="text/javascript">
+  	var dg = $("#dg");
+  	$(function(){
+  		dg.datagrid({
+  			remoteSort:false,
+ 			nowrap:false,
+ 			pagination: true, //显示分页
+            pageSize: 10, //页大小
+            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+            fitColumns:true,
+            singleSelect:true,
+ 			url:'announcementLog/findAnnouncementLogByPage',
+ 			columns:[[
+ 				{field:'id',title:'公告记录id',width:80},
+ 				{field:'type',title:'公告类型',width:80,formatter: function(value,row,index){
+ 					if(value==0) return "小区公告";else return "楼栋公告";
+ 				}},
+ 				{field:'title',title:'公告标题',width:50},
+ 				{field:'content',title:'公告内容',width:80},
+ 				{field:'send_time',title:'发送时间',width:80},
+ 				{field:'status',title:'状态',width:80,formatter: function(value,row,index){
+ 					if(value==0) return "未成功";else return "成功";
+ 				}},
+ 			]],
+  		});
+  		$("#dg").datagrid("hideColumn", "id");
+  	})
+  </script>
+</html>

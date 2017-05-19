@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.IUserExtendDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.TUserExtend">insert into T_USER_EXTEND (extend_id,user_id,client_id,owner_id) values(#{extend_id},#{user_id},#{client_id},#{owner_id})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.TUserExtend">update T_USER_EXTEND set user_id = #{user_id},client_id = #{client_id},owner_id = #{owner_id} where extend_id = #{extend_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_USER_EXTEND where extend_id = #{extend_id}</delete>
+    <delete id="deleteByUserId" parameterType="java.lang.String">delete from T_USER_EXTEND where user_id = #{user_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TUserExtend">select * from T_USER_EXTEND where extend_id = #{extend_id}</select>
+    <select id="findDataByUserId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TUserExtend">select * from T_USER_EXTEND where user_id = #{user_id}</select>
+    <select id="findDataByOwnerId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TUserExtend">select * from T_USER_EXTEND where owner_id = #{owner_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.TUserExtend" parameterType="java.util.Map">select * from T_USER_EXTEND where user_id like concat('%', #{user_id},'%') order by user_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from T_USER_EXTEND where user_id like concat('%', #{user_id},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.TUserExtend">select * from T_USER_EXTEND where user_id like concat('%', #{user_id},'%') order by user_id desc limit ${m}, ${n}</select>
+</mapper>

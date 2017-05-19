@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>公告</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+    <div id="contextBox">
+    	<table id="dg" title="公告列表" class="easyui-datagrid" style="min-height: 100vh;" rownumbers="true" fitColumns="true">
+	  	</table>
+    </div>
+    <div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+        <form id="ff" method="post" enctype="multipart/form-data" data-options="novalidate:true" style="margin:0;padding:20px 50px">
+             <!-- <input type="hidden" name="id" value="" id="id"> -->
+             <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">公告标题:</label>
+				<input class="easyui-textbox" name="title" labelPosition="top" style="width:60%;" data-options="required:true">
+            </div>
+           <!-- 
+            <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">公告类型:</label>
+            	<select class="easyui-combobox" name="type"  style="width:60%;" id="type">
+            		<option value="0">按小区发送</option>
+            		<option value="1">按楼栋发送</option>
+            	</select>
+            </div>
+            -->
+            <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">选择楼盘:</label>
+				<select class="easyui-combobox" name="building_id"  style="width:60%;" id="building_id"  data-options="required:true">
+            	</select>
+            </div>
+            <!-- 
+            <div style="margin-bottom:10px;">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">选择楼栋:</label>
+            	<select class="easyui-combobox" name="house_dong"  style="width:60%;" id="house_dong">
+            	</select>
+            </div>
+             -->
+            <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;" >公告内容:</label>
+            	<textarea id="content" rows=5 name="content"  class="textarea easyui-validatebox" style="resize: none;" data-options="required:true"></textarea>
+            </div>
+            <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">是否定时发送:</label>
+                <input type="radio" name="is_send" value="1">是</input>
+                <input type="radio" name="is_send" value="0" checked="checked">否</input>
+            </div>
+           <div style="margin-bottom:10px">
+            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">发送时间:</label>
+            	<input class="easyui-datetimebox" name="send_time" labelPosition="top" style="width:50%;" id="send_time">
+            </div>
+        </form>
+        <div id="dlg-buttons" style="text-align: center;">
+    		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm();" iconcls="icon-save">保存</a> 
+    		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm();" iconcls="icon-cancel">取消</a>
+   	    </div> 
+    </div>
+  </body>
+  <script type="text/javascript">
+  	var dg = $("#dg");
+  	var url = '';
+  	$(function(){
+  		dg.datagrid({
+  			remoteSort:false,
+ 			nowrap:false,
+ 			pagination: true, //显示分页
+            pageSize: 10, //页大小
+            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+            fitColumns:true,
+            singleSelect:true,
+ 			url:'announcement/findAnnouncementByPage',
+ 			columns:[[
+ 				{field:'id',title:'公告编号',width:80},
+ 				{field:'type',title:'公告类型',width:80,formatter: function(value,row,index){
+ 					if(value==0) return "小区公告";else return "楼栋公告";
+ 				}},
+ 				{field:'building_name',title:'小区',width:80},
+ 				{field:'house_dong',title:'栋',width:80},
+ 				{field:'title',title:'公告标题',width:50},
+ 				{field:'content',title:'公告内容',width:80},
+ 				{field:'is_send',title:'是否定时发送',width:80,formatter: function(value,row,index){
+ 					if(value==0) return "不定时发送";else return "定时发送";
+ 				}},
+ 				{field:'send_time',title:'发送时间',width:80},
+ 				{field:'createtime',title:'公告创建时间',width:80},
+ 			]],
+ 			toolbar: [{
+ 				text:'新增',
+ 				iconCls: 'icon-add',
+ 				handler: function(){
+ 					$("#dlg").dialog("open").dialog('setTitle', '添加公告');
+ 					url='announcement/save';
+ 				}
+ 			},'-',{
+ 				text:'编辑',
+ 				iconCls: 'icon-edit',
+ 				handler: function(){
+ 					var row = dg.datagrid("getSelected");
+ 					if (row != null ) {
+ 						$("#dlg").dialog("open").dialog('setTitle', '编辑公告');
+ 						$("#ff").form("load",row);
+ 						url='announcement/edit?id='+row.id;
+ 					}else {
+                        $.messager.alert("提示", "请选择要编辑的行", "error");
+                    }
+ 				}
+ 			},'-',{
+ 				text:'删除',
+ 				iconCls: 'icon-remove',
+ 				handler: function(){
+ 					var row = dg.datagrid("getSelected");
+ 					if (row != null ) {
+                        $.messager.confirm("提示", "你确定要删除吗?", function (r) {
+                            $.ajax({
+                            	url:'announcement/delete',
+                            	type:'post',
+                            	data:{'id':row.id},
+                            	success:function(d){
+                            		 //$.messager.alert("提示", d, "info");
+                            		 dg.datagrid('reload');
+                            	}
+                            })
+                        });
+                    }else {
+                        $.messager.alert("提示", "请选择要删除的行", "error");
+                    }
+ 				}
+ 			}]
+  		});
+  		$("#dg").datagrid("hideColumn", "id");
+  		$("#dg").datagrid("hideColumn", "house_dong");
+  		$("#dg").datagrid("hideColumn", "type");
+  		//获取小区
+  		$("#building_id").combobox({
+  		    url:'estateBuildingDetail/findBuildingAll',
+  		    valueField:'building_id',
+  		    textField:'building_name',
+  		 	onChange:function(newValue, oldValue){//设置楼栋
+  		 		$("#house_dong").combobox({
+	  		 			url:'estateHouse/findDong',
+	  		  		    valueField:'key',
+	  		  		    textField:'value',
+			  		  	onBeforeLoad: function(param){
+			  		  		param.building_id = newValue;
+			  		  	}
+	  		  	})
+  		 	}
+  		})
+  	})
+  	function submitForm(){
+  		console.info(url);
+  		$('#ff').form('submit',{
+			url:url,
+			onSubmit:function(param){
+				return $(this).form('validate');
+			},
+  			success:function(data){
+  				$('#dlg').dialog('close')
+  				//$.messager.alert('提示', data, 'info');
+				dg.datagrid('reload');
+  			}
+		})
+  	}
+  	
+	function clearForm(){
+		$('#ff').form('clear');
+		$('#dlg').dialog('close')
+	}
+  </script>
+</html>

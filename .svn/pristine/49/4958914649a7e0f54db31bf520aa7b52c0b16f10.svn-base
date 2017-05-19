@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.merise.platform.orm.mapper.TurnDao">
+	
+	
+	<select id="findCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*) from T_TURN
+	</select>
+	
+	<!-- 分页查询 -->
+	<select id="findTurnByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.Turn">
+		SELECT * from T_TURN 
+		ORDER BY turn_time DESC
+		limit #{start},#{size}
+	</select>
+	
+	<insert id="saveTrun" parameterType="net.merise.platform.orm.base.Turn">
+		insert into 
+			T_TURN(turn_id,turn_moneny,over_people,recipient_perople,turn_time) 
+		values(#{turn_id},#{turn_moneny},#{over_people},#{recipient_perople},#{turn_time})
+	</insert>
+</mapper>

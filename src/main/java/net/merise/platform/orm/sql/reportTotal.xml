@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.ReportTotalDAO">
+
+	<select id="findCount" resultType="net.merise.platform.orm.base.NewspaperReport" parameterType="java.util.Map">
+		select a.newspaper_id,a.newspaper_type,TIMESTAMPDIFF(HOUR,a.newspaper_time,a.end_time) as wctimes
+ 			from T_NEWSPAPER_REPORT a,T_NEWSPAPER_REPAIRS b,ESTATE_HOUSE_DETAIL c
+ 			where a.newspaper_id=b.newspaper_id and c.house_id=a.house_id
+ 			 and c.building_id=#{building_id} and a.end_time between #{begin_time} and #{after_time} and
+ 			 a.newspaper_time between #{begin_time} and #{after_time}
+ 			 and a.newspaper_status='已归档' GROUP BY a.newspaper_id
+	</select>
+	
+	<select id="findDataByTime" resultType="net.merise.platform.orm.base.NewspaperReport" parameterType="java.util.Map">
+		select * from 
+			T_NEWSPAPER_REPORT a,
+			ESTATE_HOUSE_DETAIL b
+			where 
+			a.house_id = b.house_id 
+			and b.building_id = #{building_id}
+			and a.newspaper_time BETWEEN #{begin_time} and #{end_time}
+			and a.end_time BETWEEN #{begin_time} and #{end_time}
+
+	</select>
+	
+	<select id="findDataByBeginTime" resultType="net.merise.platform.orm.base.NewspaperReport">
+		select a.* from 
+			T_NEWSPAPER_REPORT a,
+			ESTATE_HOUSE_DETAIL b
+			where 
+			a.house_id = b.house_id 
+			and b.building_id = #{building_id}
+			and a.newspaper_time BETWEEN #{begin_time} and #{end_time}
+
+	</select>
+	
+	<select id="findHuiFangByReportId" resultType="net.merise.platform.orm.base.NewsPaperRepairs" parameterType="java.lang.String">
+		select * from T_NEWSPAPER_REPAIRS where newspaper_id = #{report_id}
+	</select>
+	
+	<select id="findEmpRepairByTime" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+	t.newspaper_type,
+	t.employees_id,
+	t.employees_name,
+	t.employees_dept_text,
+	count(*) num
+FROM
+	(
+		SELECT
+			a.newspaper_type,
+			a.newspaper_id,
+			b.employees_id,
+			(
+				SELECT
+					d.code_content
+				FROM
+					ESTATE_CODE_DETAIL d
+				WHERE
+					c.employees_dept = d.code_id
+			) AS employees_dept_text,
+			c.employees_name
+		FROM
+			T_NEWSPAPER_REPORT a,
+			T_NEWSPAPER_REPAIRS b,
+			T_EMPLOYEES c,
+			ESTATE_HOUSE_DETAIL e
+		WHERE
+			a.newspaper_id = b.newspaper_id
+		AND c.employees_id = b.employees_id
+		AND b.repairs_time BETWEEN #{begin_time}
+		AND #{end_time}
+		AND a.house_id = e.house_id
+		AND e.building_id = #{building_id}
+		GROUP BY
+			a.newspaper_type,
+			a.newspaper_id,
+			b.employees_id
+	) t
+GROUP BY
+	t.newspaper_type,
+	t.employees_id
+ORDER BY 
+	t.employees_id,num DESC
+	limit ${m},${n}
+	</select>
+	
+	<select id="findEmpRepairByTimeCount" resultType="java.util.Map" parameterType="java.util.Map">
+		SELECT
+	count(*)
+FROM
+	(
+		SELECT
+			a.newspaper_type,
+			a.newspaper_id,
+			b.employees_id,
+			(
+				SELECT
+					d.code_content
+				FROM
+					ESTATE_CODE_DETAIL d
+				WHERE
+					c.employees_dept = d.code_id
+			) AS employees_dept_text,
+			c.employees_name
+		FROM
+			T_NEWSPAPER_REPORT a,
+			T_NEWSPAPER_REPAIRS b,
+			T_EMPLOYEES c,
+			ESTATE_HOUSE_DETAIL e
+		WHERE
+			a.newspaper_id = b.newspaper_id
+		AND c.employees_id = b.employees_id
+		AND b.repairs_time BETWEEN #{begin_time}
+		AND #{end_time}
+		AND a.house_id = e.house_id
+		AND e.building_id = #{building_id}
+		GROUP BY
+			a.newspaper_type,
+			a.newspaper_id,
+			b.employees_id
+	) t
+GROUP BY
+	t.newspaper_type,
+	t.employees_id
+
+	</select>
+</mapper>

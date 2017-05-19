@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>reportTotal.jsp</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	<script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	
+  		<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="统计列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	
+	  	<div style="margin-top: 20px;">
+	  		<table id="dg1" title="职员任务量列表" class="easyui-datagrid" style="min-height: 100vh;"
+  		pagination="true"
+  		rownumbers="true" fitColumns="true" singleSelect="true">
+
+		  		<thead>
+		  			<tr>
+		  			
+		  			</tr>
+		  		</thead>
+		  	</table>
+	  	</div>
+	  	<div id="toolbar">
+	  		<form id="fm" method="post" novalidate>
+		  		<input name="begin_time" id="begin_time" class="easyui-datetimebox" data-options="editable:false" required="true" label="开始时间:" style="width:20%">
+		  		<input name="after_time" id="after_time" class="easyui-datetimebox" data-options="editable:false" required="true" label="结束时间:" style="width:20%">
+		        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-search" plain="true" id="save" onclick="doSearch()">搜索</a>
+	        </form>
+	    </div>
+	  	
+	  		<div id="main" style="width:400px;height:250px;float: left;margin-top: 100px;" ></div>
+	  		<div id="main1" style="width:400px;height:250px;float: left;margin-top: 100px;" ></div>
+	  		<div id="main2" style="width:400px;height:250px;float: left;margin-top: 100px;" ></div>
+	  	
+	</div>
+  
+    <script type="text/javascript">
+    
+  //实例化树菜单  
+	 var building_id = "";
+	 var dong = "";
+	 $(function(){
+		 $("#tree").tree({
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+		    	 dong = node.text;// 栋
+				 if (node.attributes.level == "build") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			pagination: false, //显示分页
+	        			columns:[[
+							{field:'house_dong',title:'请选择时间搜索',width:120,align:'center'},
+	        			]]
+	        			
+	        		});
+		    		 
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg1").datagrid({
+	        			remoteSort:false,
+	        			pagination: false, //显示分页
+	        			columns:[[
+							{field:'house_dong',title:'请选择时间搜索',width:120,align:'center'},
+	        			]]
+	        			
+	        		});
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+    
+    function doSearch(){ //点击搜素,触发此函数
+    	var begin_time = $("#begin_time").datebox("getValue");
+    	var after_time = $("#after_time").datebox("getValue");
+    	if($("#fm").form("validate")){
+            	$("#dg").datagrid({
+            		url: "reportTotal/findReportCount?begin_time="+begin_time+"&end_time="+after_time+"&building_id="+building_id,
+        			remoteSort:false,
+        			pagination: false, //显示分页
+        			columns:[[
+						{field:'name',title:'名称',width:120,align:'center'},
+						{field:'zongliang',title:'总事件量',width:120,align:'center'},
+						{field:'wanchengliang',title:'完成事件量',width:120,align:'center'},
+						{field:'manyidu',title:'满意度',width:120,align:'center'},
+						{field:'paigonglv',title:'多次派工率',width:120,align:'center'},
+						{field:'huifanglv',title:'回访率',width:120,align:'center'}
+        			]]
+        			
+        		});
+            	
+            	$("#dg1").datagrid({
+            		url: "reportTotal/findEmpRepairsCount?begin_time="+begin_time+"&end_time="+after_time+"&building_id="+building_id,
+            		remoteSort:false,
+        			singleSelect:true,
+        			nowrap:false,
+        			fitColumns:true,
+        			pagination: true, //显示分页
+                    pageSize: 10, //页大小
+                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+        			columns:[[
+						{field:'employees_id',title:'职员编号',width:120,align:'center'},
+						{field:'employees_name',title:'职员姓名',width:120,align:'center'},
+						{field:'employees_dept_text',title:'部门',width:120,align:'center'},
+						{field:'newspaper_type',title:'事件类别',width:120,align:'center'},
+						{field:'num',title:'处理派工量',width:120,align:'center'}
+        			]]
+        		});
+    	}
+    }
+ 
+    // 路径配置
+    require.config({
+        paths : {
+        	 'echarts/chart/pie' : 'http://echarts.baidu.com/build/echarts'
+        }
+    });
+    
+    $(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+			 url:'reportTotal/findCount?building_id='+building_id,
+           /*  onSubmit: function(){
+                return $(this).form("validate");
+            }, */
+            success: function(data){
+           		//使用
+	             require([ 'echarts', 'echarts/chart/pie' // 使用柱状图就加载bar模块，按需加载
+	             ], function(ec) {
+	            	 var a=JSON.parse(data);
+	            	 var names=a[0];
+	            	 var bscounts=a[1];
+	            	 var bxcounts=a[2];
+	            	 var qtcounts=a[3];
+	             	  //报事初始化echarts图表
+	         		  myChart = ec.init(document.getElementById('main')); 
+	         		  myChart.setOption({
+	         			 title : {
+	         		        text: '报事处理完毕数据统计图',
+	         		        x:'center'
+	         		    },
+	         		    tooltip : {
+	         		        trigger: 'item',
+	         		        formatter: "{a} <br/>{b} : {c} ({d}%)"
+	         		    },
+	         		    legend: {
+	         		        orient : 'vertical',
+	         		        x : 'left',
+	         		        data:['一天内','两天内','其它天内']
+	         		    },
+	         		    toolbox: {
+	         		        show : true,
+	         		        feature : {
+	         		            dataView : {show: true, readOnly: false},
+	         		            restore : {show: true},
+	         		            saveAsImage : {show: true}
+	         		        }
+	         		    },
+	         		    //calculable : true,
+	         		    series : [
+	         		        {
+	         		            type:'pie',
+	         		            radius : '55%',
+	         		            center: ['50%', '60%'],
+		           					data: (function(){
+		                                var res = [];
+		                                for(var i = 0; i < names.length; i++){
+			                                res.push({
+			                                name: names[i],
+			                                value: bscounts[i]
+			                                });
+		                                }
+		                                return res;
+		                                })()
+
+
+	         		        }
+	         		    ]
+	         			});
+	         		  
+	         		  
+	         		 //报修初始化echarts图表
+	         		  myChart1 = ec.init(document.getElementById('main1')); 
+	         		  myChart1.setOption({
+	         			 title : {
+	         		        text: '报修处理完毕数据统计图',
+	         		        x:'center'
+	         		    },
+	         		    tooltip : {
+	         		        trigger: 'item',
+	         		        formatter: "{a} <br/>{b} : {c} ({d}%)"
+	         		    },
+	         		    legend: {
+	         		        orient : 'vertical',
+	         		        x: 'left',
+	         		        data:['一天内','两天内','其它天内']
+	         		    },
+	         		    toolbox: {
+	         		        show : true,
+	         		        feature : {
+	         		            dataView : {show: true, readOnly: false},
+	         		            restore : {show: true},
+	         		            saveAsImage : {show: true}
+	         		        }
+	         		    },
+	         		    //calculable : true,
+	         		    series : [
+	         		        {
+	         		            type:'pie',
+	         		            radius : '55%',
+	         		            center: ['50%', '60%'],
+		           					data: (function(){
+		                                var res = [];
+		                                for(var i = 0; i < names.length; i++){
+			                                res.push({
+			                                name: names[i],
+			                                value: bxcounts[i]
+			                                });
+		                                }
+		                                return res;
+		                                })()
+
+
+	         		        }
+	         		    ]
+	         			});
+	         		  
+	         		  
+	         		 //其它初始化echarts图表
+	         		  myChart2 = ec.init(document.getElementById('main2')); 
+	         		  myChart2.setOption({
+	         			 title : {
+	         		        text: '其它处理完毕数据统计图',
+	         		        x:'center'
+	         		    },
+	         		    tooltip : {
+	         		        trigger: 'item',
+	         		        formatter: "{a} <br/>{b} : {c} ({d}%)"
+	         		    },
+	         		    legend: {
+	         		        orient : 'vertical',
+	         		        x : 'left',
+	         		        data:['一天内','两天内','其它天内']
+	         		    },
+	         		    toolbox: {
+	         		        show : true,
+	         		        feature : {
+	         		            dataView : {show: true, readOnly: false},
+	         		            restore : {show: true},
+	         		            saveAsImage : {show: true}
+	         		        }
+	         		    },
+	         		    //calculable : true,
+	         		    series : [
+	         		        {
+	         		            type:'pie',
+	         		            radius : '55%',
+	         		            center: ['50%', '60%'],
+		           					data: (function(){
+		                                var res = [];
+		                                for(var i = 0; i < names.length; i++){
+			                                res.push({
+			                                name: names[i],
+			                                value: qtcounts[i]
+			                                });
+		                                }
+		                                return res;
+		                                })()
+
+
+	         		        }
+	         		    ]
+	         			});
+	             });
+            }
+        });
+    });
+    
+		
+    </script>
+  </body>
+</html>

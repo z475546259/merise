@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>欠费记录</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+   	<div id="contextBox" style="float: right; display: none;">
+   		<table id="dg" title="欠费记录" class="easyui-datagrid" style="min-height: 100vh;" toolbar="#toolbar" pagination="true" rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请输入房屋编号</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<!-- 
+	  	<div id="toolbar" class="import_bar">	
+	  	   <select class="easyui-combobox" name="money" style="width:120px;" id="money">
+	  	   		<option value="0">全部</option>
+	  	   		<option value="1">余额充足</option>
+	  	   		<option value="2">余额不足</option>
+	  	   </select>
+	       <a class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="seachBtn">搜索</a>
+	    </div>
+	  	 -->
+   	</div>
+  </body>
+  <script type="text/javascript">
+  		var dg =  $("#dg");
+  		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+			 formatter:function(node){
+				 var s = node.text;
+				 if (s.indexOf("栋") == -1) {
+					 if (s.indexOf("车库") == -1) {
+					 	s = s.replace("-","栋-");
+					 }
+				 }
+				 return s;
+			 },
+			 onClick: function(node){
+	    	 	if (node.attributes.level == "house") {
+	    	 		$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+					dong = node.attributes.house_dong;// 栋
+		    	 	building_id = $(this).tree("getParent",node.target).id;
+					dg.datagrid({
+			 			remoteSort:false,
+			 			nowrap:false,
+			 			pagination: true, //显示分页
+			            pageSize: 10, //页大小
+			            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+			 			url:"payCost/payCostLackRecord?building_id="+building_id+"&house_dong="+dong,
+			 			columns:[[
+							{field:'building_name',title:'楼盘名称',width:80},
+			 				{field:'house_dong',title:'栋',width:50},
+			 				{field:'house_units',title:'单元',width:50},
+			 				{field:'house_floor',title:'层',width:50},
+			 				{field:'house_location',title:'房屋号',width:80},
+			 				{field:'owner_name',title:'业主名称',width:60},
+			 				{field:'receivable_moneny',title:'应交金额',width:50},
+			 				{field:'paycost_moneny',title:'实交金额',width:50},
+			 				{field:'lack_moneny',title:'未交金额',width:50,formatter:function(value, row, index){return '<font color="red">' + value + '</font>';}},
+			 				{field:'owner_mobile',title:'手机号',width:80},
+			 				{field:'owner_email',title:'邮箱',width:80},
+			 			]],
+			 		});
+	    	 	} else if (node.attributes.level == "build") {
+	    	 		$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+					dong = "";// 栋
+		    	 	building_id = node.id;
+					dg.datagrid({
+			 			remoteSort:false,
+			 			nowrap:false,
+			 			pagination: true, //显示分页
+			            pageSize: 10, //页大小
+			            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+			 			url:"payCost/payCostLackRecord?building_id="+building_id+"&house_dong="+dong,
+			 			columns:[[
+							{field:'building_name',title:'楼盘名称',width:80},
+			 				{field:'house_dong',title:'栋',width:50},
+			 				{field:'house_units',title:'单元',width:50},
+			 				{field:'house_floor',title:'层',width:50},
+			 				{field:'house_location',title:'房屋号',width:80},
+			 				{field:'owner_name',title:'业主名称',width:60},
+			 				{field:'receivable_moneny',title:'应交金额',width:50},
+			 				{field:'paycost_moneny',title:'实交金额',width:50},
+			 				{field:'lack_moneny',title:'未交金额',width:50,formatter:function(value, row, index){return '<font color="red">' + value + '</font>';}},
+			 				{field:'owner_mobile',title:'手机号',width:80},
+			 				{field:'owner_email',title:'邮箱',width:80},
+			 			]],
+			 		});
+	    	 	} else {
+	    	 		$("#contextBox").hide();
+	    	 	}
+			 }
+  		 });
+  		$(function(){
+  			//搜索
+  			$("#seachBtn").click(function(){
+  				var money = $("#money").combobox('getValue');
+  				dg.datagrid({
+  					url:'payCost/payCostLackRecord?money='+money
+  				})
+  			})
+  		})
+  </script>
+</html>

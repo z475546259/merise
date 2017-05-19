@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>催缴信息</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+    <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	<div id="contextBox" style="float: right; display: none;">
+  		<table id="dg" title="业主信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="false">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<label style="margin-left: 5px; margin-right: 5px;">未结清款项</label>
+	  		<select id="outstandingAmount" name="outstandingAmount" class="easyui-combobox" style="width: 100px;">
+	  			<option value="">全部</option>
+	  			<option value="1">超过1个月</option>
+	  			<option value="2">超过2个月</option>
+	  			<option value="3">超过3个月</option>
+	  			<option value="4">超过4个月</option>
+	  			<option value="5">超过5个月</option>
+	  			<option value="6">超过6个月</option>
+	  		</select>
+	  		<label style="margin-left: 5px; margin-right: 5px;">收费项目</label><input id="billType" name="billType" class="easyui-combobox" style="width: 100px;" />
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-feed" plain="true" id="app">APP消息发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-email" plain="true" id="email">邮件发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-credit-card" plain="true" id="message">短信发送</a>
+	    </div>
+	    <div id="dlg" class="easyui-dialog" style="width: 500px;" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	        	 <div style="margin-bottom:10px">
+	                <input type="text" id="title" placeholder="请输入消息标题" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<textarea id="messageContent" name="messageContent" rows="10" style="width: 100%;" placeholder="请输入消息内容"></textarea>
+	            	<input type="hidden" id="mode" name="mode" />
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">发送</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+  	</div>
+  	<script type="text/javascript">
+  		$(document).ready(function(){
+  			$("#tree").tree({
+  				url : "messageGroup/tree",
+  				formatter:function(node){
+  					 var s = node.text;
+  					 if (s.indexOf("栋") == -1) {
+  						 if (s.indexOf("车库") == -1) {
+  						 	s = s.replace("-","栋-");
+  						 }
+  					 }
+  					 return s;
+  				 },
+  				onClick : function(node) {
+				 	var building_id = node.id;//楼盘id
+		    	 	var dong = node.attributes.house_dong;// 栋
+  					if (node.attributes.level == "house") {
+  						$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+  						$("#contextBox").show();
+  						$("#dg").datagrid({
+  							remoteSort:false,
+  		        			nowrap:false,
+  		        			pagination: true, //显示分页
+  		                    pageSize: 10, //页大小
+  		                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+  		        			url:'cost/index?buildId='+building_id+'&dong='+dong,
+  		        			columns:[[
+								{field:'ck', checkbox:true},
+  		        				{field:'house_id',title:'房屋编号',width:10,align:'center'},
+  		        				{field:'house_units',title:'单元号',width:5,align:'center'},
+  		        				{field:'house_floor',title:'楼层号',width:5,align:'center'},
+  		        				{field:'house_room',title:'房号',width:5,align:'center'},
+  		        				{field:'owner_id',title:'业主编号',width:8,align:'center'},
+  		        				{field:'owner_name',title:'业主姓名',width:8,align:'center'},
+  		        				{field:'batch',title:'欠费时间',width:6,align:'center'},
+  		        				{field:'money',title:'欠费金额',width:6,align:'center'},
+  		        				{field:'owner_mobile',title:'业主手机',width:10,align:'center'},
+  		        				{field:'owner_email',title:'业主邮箱',width:10,align:'center'},
+  		        				{field:'owner_idcard',title:'身份证号',width:10,align:'center'},
+  		        				{field:'type_name',title:'收费项目',width:10,align:'center'},
+  		        				{field:'clientid',title:'客户端编号',width:10,align:'center'}
+  		        			]]
+  						});
+  						$("#dg").datagrid("hideColumn", "house_id");
+  						$("#dg").datagrid("hideColumn", "owner_id");
+  						$("#dg").datagrid("hideColumn", "clientid");
+  						$("#billType").combobox({
+  			  				url:"cost/billcate?buildId="+building_id,
+  			  				valueField:"id",
+  			  				textField:"text"
+  			  			});
+  					} else {
+  						$("#contextBox").hide();
+  					}
+  				}
+  			});
+  		});
+  		
+  		// 收费项目下拉
+		$("#billType").combobox({
+			onSelect : function(res){
+				var node = $("#tree").tree("getSelected");
+				if (node != null) {
+					$("#dg").datagrid({
+						remoteSort:false,
+		       			nowrap:false,
+		       			pagination: true, //显示分页
+	                   	pageSize: 10, //页大小
+	                   	pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+		       			url:'cost/index?buildId='+node.id+'&dong='+node.text+'&houseStatus='+res.text+'&billDate='+$("#outstandingAmount").combobox("getValue"),
+		       			columns:[[
+							{field:'ck', checkbox:true},
+	        				{field:'house_id',title:'房屋编号',width:10,align:'center'},
+	        				{field:'house_units',title:'单元号',width:5,align:'center'},
+	        				{field:'house_floor',title:'楼层号',width:5,align:'center'},
+	        				{field:'house_room',title:'房号',width:5,align:'center'},
+	        				{field:'owner_id',title:'业主编号',width:10,align:'center'},
+	        				{field:'owner_name',title:'业主姓名',width:8,align:'center'},
+	        				{field:'batch',title:'欠费时间',width:6,align:'center'},
+	        				{field:'money',title:'欠费金额',width:6,align:'center'},
+	        				{field:'owner_mobile',title:'业主手机',width:10,align:'center'},
+	        				{field:'owner_email',title:'业主邮箱',width:10,align:'center'},
+	        				{field:'owner_idcard',title:'身份证号',width:10,align:'center'},
+	        				{field:'type_name',title:'收费项目',width:10,align:'center'},
+	        				{field:'clientid',title:'客户端编号',width:10,align:'center'}
+		       			]]
+					});
+					$("#dg").datagrid("hideColumn", "house_id");
+					$("#dg").datagrid("hideColumn", "owner_id");
+					$("#dg").datagrid("hideColumn", "clientid");
+				}
+			}
+		});
+  		
+  		// 欠费周期下拉
+		$("#outstandingAmount").combobox({
+			onSelect : function(res){
+				var node = $("#tree").tree("getSelected");
+				if (node != null) {
+					$("#dg").datagrid({
+						remoteSort:false,
+		       			nowrap:false,
+		       			pagination: true, //显示分页
+	                   	pageSize: 10, //页大小
+	                   	pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+		       			url:'cost/index?buildId='+node.id+'&dong='+node.text+'&houseStatus='+$("#billType").combobox("getText")+'&billDate='+res.value,
+		       			columns:[[
+							{field:'ck', checkbox:true},
+	        				{field:'house_id',title:'房屋编号',width:10,align:'center'},
+	        				{field:'house_units',title:'单元号',width:5,align:'center'},
+	        				{field:'house_floor',title:'楼层号',width:5,align:'center'},
+	        				{field:'house_room',title:'房号',width:5,align:'center'},
+	        				{field:'owner_id',title:'业主编号',width:10,align:'center'},
+	        				{field:'owner_name',title:'业主姓名',width:8,align:'center'},
+	        				{field:'batch',title:'欠费时间',width:6,align:'center'},
+	        				{field:'money',title:'欠费金额',width:6,align:'center'},
+	        				{field:'owner_mobile',title:'业主手机',width:10,align:'center'},
+	        				{field:'owner_email',title:'业主邮箱',width:10,align:'center'},
+	        				{field:'owner_idcard',title:'身份证号',width:10,align:'center'},
+	        				{field:'type_name',title:'收费项目',width:10,align:'center'},
+	        				{field:'clientid',title:'客户端编号',width:10,align:'center'}
+		       			]]
+					});
+					$("#dg").datagrid("hideColumn", "house_id");
+					$("#dg").datagrid("hideColumn", "owner_id");
+					$("#dg").datagrid("hideColumn", "clientid");
+				}
+			}
+		});
+  		
+  		$(document).on("click", "#app", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("app");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","APP消息发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#email", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("email");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","邮件发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#message", function(){
+			var rows = $("#dg").datagrid("getSelections");
+			if (rows.length > 0) {
+				$("#mode").val("message");
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","短信发送");
+			}
+  		});
+  		
+  		$(document).on("click", "#save", function(){
+  			var rows = $("#dg").datagrid("getSelections");
+  			var mode = $("#mode").val();
+  			var messageContent = $.trim($("#messageContent").val());
+  			var title = $.trim($("#title").val());
+  			var url = "";
+  			if (mode == "app") {
+  				url = "cost/app";
+  			}
+  			if (mode == "email") {
+  				url = "cost/email";
+  			}
+  			if (mode == "message") {
+  				url = "cost/message";
+  			}
+  			if (title != "" && messageContent != "") {
+  				$.ajax({
+  					url : url,
+  					type : "POST",
+  					data : {"data":JSON.stringify(rows), "title":title, "content":messageContent},
+  					dataType : "json",
+  					success : function(data){
+  						if (data.status) {
+  							//$.messager.alert("提示信息", data.message ,"info");
+  							$("#title").val("");
+  							$("#messageContent").val("");
+  							$("#dlg").dialog("close");
+  						} else {
+  							$.messager.alert("错误提示", "未能成功发送,请稍候再试！", "error");
+  						}
+  					},
+  					error : function(XMLHttpRequest, textStatus, errorThrown){
+  						$.messager.alert("错误提示", "网络请求错误！", "error");
+  					}
+  				});
+  			}
+  		});
+  	</script>
+  </body>
+</html>

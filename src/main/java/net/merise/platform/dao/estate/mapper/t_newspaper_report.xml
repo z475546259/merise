@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.NewsPaperReportDAO">
+	<insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.NewspaperReport">
+		insert into T_NEWSPAPER_REPORT (newspaper_id,newspaper_type,report_type,newspaper_name,newspaper_content,newspaper_time,newspaper_status,newspaper_remark,owner_id,house_id)
+								values(#{newspaper_id},#{newspaper_type},#{report_type},#{newspaper_name},#{newspaper_content},#{newspaper_time},#{newspaper_status},#{newspaper_remark},#{owner_id},#{house_id})
+	</insert>
+	
+	<update id="update" parameterType="net.merise.platform.dao.estate.pojo.NewspaperReport">
+		update T_NEWSPAPER_REPORT set newspaper_status=#{newspaper_status},end_time=#{end_time}
+			where newspaper_id=#{newspaper_id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from T_NEWSPAPER_REPORT where newspaper_id=#{newspaper_id}
+	</delete>
+	
+	<select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.NewspaperReport">
+		select * from T_NEWSPAPER_REPORT where newspaper_id=#{newspaper_id}
+	</select>
+	
+	<select id="findDataByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select d.house_dong,d.house_units,d.house_floor,d.house_room,b.owner_name,b.owner_mobile,a.*,d.house_id from 
+				T_NEWSPAPER_REPORT a,
+				ESTATE_OWNER_DETAIL b,
+				ESTATE_HOUSE_DETAIL d
+				where a.owner_id = b.owner_id and a.house_id = d.house_id and d.building_id=#{building_id} 
+					<if test="house_dong != ''">
+						and d.house_dong=#{house_dong}
+					</if>
+					<if test="newspaper_type != '全部'">
+						and a.newspaper_type = #{newspaper_type}
+					</if>
+					<if test="newspaper_status != '全部'">
+						and a.newspaper_status = #{newspaper_status}
+					</if>
+					and (b.owner_name like concat('%', #{owner_name},'%') or a.newspaper_name like concat('%', #{newspaper_name},'%'))
+					order by a.newspaper_time desc
+					limit ${m}, ${n}
+	</select>
+	
+	<select id="findDataByPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*) from 
+				T_NEWSPAPER_REPORT a,
+				ESTATE_OWNER_DETAIL b,
+				ESTATE_HOUSE_DETAIL d
+				where a.owner_id = b.owner_id and a.house_id = d.house_id and d.building_id=#{building_id} and d.house_dong=#{house_dong}
+					<if test="newspaper_type != '全部'">
+						and a.newspaper_type = #{newspaper_type}
+					</if>
+					<if test="newspaper_status != '全部'">
+						and a.newspaper_status = #{newspaper_status}
+					</if>
+					and (b.owner_name like concat('%', #{owner_name},'%') or a.newspaper_name like concat('%', #{newspaper_name},'%'))
+					order by a.newspaper_time desc
+					limit ${m}, ${n}
+	</select>
+	
+	<select id="findRepairsByReportId" parameterType="java.util.Map" resultType="java.util.Map">
+		select a.*,b.employees_name from T_NEWSPAPER_REPAIRS a,T_EMPLOYEES b where a.employees_id = b.employees_id and newspaper_id = #{report_id} order by repairs_time desc limit ${m}, ${n}
+	</select>
+	
+	<select id="findRepairsByReportIdNoLimit" parameterType="java.lang.String" resultType="java.util.Map">
+		select a.*,b.employees_name from T_NEWSPAPER_REPAIRS a,T_EMPLOYEES b where a.employees_id = b.employees_id and newspaper_id = #{newspaper_id} order by repairs_time asc
+	</select>
+	
+	<select id="findRepairsByReportIdCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*) from T_NEWSPAPER_REPAIRS a,T_EMPLOYEES b where a.employees_id = b.employees_id and newspaper_id = #{report_id} order by repairs_time desc 
+	</select>
+	
+	<select id="saveRepaies" parameterType="net.merise.platform.dao.estate.pojo.NewsPaperRepairs">
+		insert into T_NEWSPAPER_REPAIRS (repairs_id,newspaper_id,employees_id,repairs_type,repairs_time,repairs_status,repairs_remark)
+									values(#{repairs_id},#{newspaper_id},#{employees_id},#{repairs_type},#{repairs_time},#{repairs_status},#{repairs_remark})
+	</select>
+	
+	<select id="findOwnerDataByReportId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+			R.newspaper_name,
+			R.newspaper_content,
+			R.newspaper_time,
+			O.owner_name,
+			O.owner_mobile,
+			B.building_name,
+			H.house_dong,
+			H.house_units,
+			H.house_floor,
+			H.house_room
+		FROM
+			T_NEWSPAPER_REPORT R,
+			ESTATE_OWNER_DETAIL O,
+			ESTATE_HOUSE_DETAIL H,
+			ESTATE_BUILDING_DETAIL B
+		WHERE
+			R.owner_id = O.owner_id
+		AND R.house_id = H.house_id
+		AND H.building_id = B.building_id
+		AND R.newspaper_id = #{newspaper_id}
+	</select>
+	
+	<select id="findReportByEmpId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT DISTINCT
+			r.*, n.repairs_type,
+			h.building_id
+		FROM
+			T_NEWSPAPER_REPORT r,
+			T_NEWSPAPER_REPAIRS n,
+			ESTATE_HOUSE_DETAIL h
+		WHERE
+			r.newspaper_id = n.newspaper_id
+		AND n.repairs_time = (select max(repairs_time) from T_NEWSPAPER_REPAIRS where employees_id = n.employees_id and newspaper_id = n.newspaper_id)
+		AND r.house_id = h.house_id
+		AND n.employees_id = #{employees_id} order by newspaper_time desc
+	</select>
+	
+	
+</mapper>

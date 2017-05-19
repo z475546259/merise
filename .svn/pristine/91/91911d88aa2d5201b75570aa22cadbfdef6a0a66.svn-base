@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.merise.platform.orm.mapper.PayCostDao">
+	
+	<!-- 分页查询 -->
+	<select id="findCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		<!-- SELECT count(*)
+		from ESTATE_BUILDING_DETAIL bd 
+		JOIN ESTATE_HOUSE_DETAIL hd ON hd.building_id = bd.building_id
+		JOIN ESTATE_OWNER_HOUSE_DETAIL ohd ON ohd.house_id = hd.house_id
+		JOIN T_PAYCOST pc ON pc.house_id = hd.house_id
+		JOIN ESTATE_OWNER_DETAIL eod ON pc.owner_id = eod.owner_id
+		WHERE bd.building_id = #{building_id} and hd.house_dong = #{house_dong} -->
+		SELECT count(*) from estate_building_detail a
+		JOIN estate_house_detail b ON b.building_id = a.building_id
+		JOIN t_payCost c ON c.house_id = b.house_id
+		WHERE a.building_id = #{building_id} AND b.house_dong = #{house_dong}
+	</select>
+	<select id="findPayCostByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		<!-- SELECT bd.building_id,bd.estate_id,hd.house_id,hd.house_dong,hd.house_units,hd.house_floor,hd.house_room,
+				pc.paycost_id,pc.paycost_way,pc.paycost_project,pc.paycost_moneny,pc.paycost_balance,pc.paycost_time,
+				eod.owner_name,eod.owner_id
+		from ESTATE_BUILDING_DETAIL bd 
+		JOIN ESTATE_HOUSE_DETAIL hd ON hd.building_id = bd.building_id
+		JOIN ESTATE_OWNER_HOUSE_DETAIL ohd ON ohd.house_id = hd.house_id
+		JOIN T_PAYCOST pc ON pc.house_id = hd.house_id
+		JOIN ESTATE_OWNER_DETAIL eod ON pc.owner_id = eod.owner_id
+		WHERE bd.building_id = #{building_id} and hd.house_dong = #{house_dong} -->
+		SELECT * from estate_building_detail a
+		JOIN estate_house_detail b ON b.building_id = a.building_id
+		JOIN t_payCost c ON c.house_id = b.house_id
+		WHERE a.building_id = #{building_id} AND b.house_dong = #{house_dong}
+		Order By c.paycost_time desc
+		limit ${m}, ${n}
+	</select>
+	
+	<!-- 每日财务明细 -->
+	<select id="findCountOfDay" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*)
+		from ESTATE_BUILDING_DETAIL bd 
+		JOIN ESTATE_HOUSE_DETAIL hd ON hd.building_id = bd.building_id
+		JOIN ESTATE_OWNER_HOUSE_DETAIL ohd ON ohd.house_id = hd.house_id
+		JOIN T_PAYCOST pc ON pc.house_id = hd.house_id
+		JOIN ESTATE_OWNER_DETAIL eod ON pc.owner_id = eod.owner_id
+		WHERE bd.building_id = #{building_id} and hd.house_dong = #{house_dong} and DATE(pc.paycost_time)= DATE(#{d})
+	</select>
+	
+	<select id="findPayCostByPageOfDay" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT bd.building_id,bd.estate_id,hd.house_id,hd.house_dong,hd.house_units,hd.house_floor,hd.house_room,
+				pc.paycost_id,pc.paycost_way,pc.paycost_project,pc.paycost_moneny,pc.paycost_balance,pc.paycost_time,
+				eod.owner_name,eod.owner_id
+		from ESTATE_BUILDING_DETAIL bd 
+		JOIN ESTATE_HOUSE_DETAIL hd ON hd.building_id = bd.building_id
+		JOIN ESTATE_OWNER_HOUSE_DETAIL ohd ON ohd.house_id = hd.house_id
+		JOIN T_PAYCOST pc ON pc.house_id = hd.house_id
+		JOIN ESTATE_OWNER_DETAIL eod ON pc.owner_id = eod.owner_id
+		WHERE bd.building_id = #{building_id} and hd.house_dong = #{house_dong} and DATE(pc.paycost_time)= DATE(#{d})
+		Order By pc.paycost_time desc
+		limit ${m}, ${n}
+	</select>
+	<!-- 费用详情 -->
+	<select id="findPayCostItemCountByPage" parameterType="java.util.Map" resultType="java.lang.Integer">
+		<!-- SELECT count(*)
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id
+		JOIN ESTATE_OWNER_DETAIL eod ON o.owner_id = eod.owner_id
+		JOIN T_CHARGE_STANDARD cs ON o.standard_id = cs.standard_id 
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1 -->
+		SELECT count(*)
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id 
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1
+	</select>
+	
+	<select id="findPayCostItemByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		<!-- SELECT b.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,eod.owner_name,cs.project_name,o.money,
+		o.bill_id,o.pay_date 
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id
+		JOIN ESTATE_OWNER_DETAIL eod ON o.owner_id = eod.owner_id
+		JOIN T_CHARGE_STANDARD cs ON o.standard_id = cs.standard_id 
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1
+		limit ${m}, ${n} -->
+		<!-- SELECT b.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,eod.owner_name,cs.project_name,o.money, o.bill_id,p.paycost_time
+		from T_OWNER_BILL o JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id 
+		JOIN ESTATE_OWNER_DETAIL eod ON o.owner_id = eod.owner_id JOIN T_CHARGE_STANDARD cs ON o.standard_id = cs.standard_id 
+		JOIN T_PAYCOST p ON p.bill_id = o.bill_id
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1
+		limit ${m}, ${n}  -->
+		SELECT o.bill_id,b.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,h.house_id,
+		(SELECT eod.owner_name from ESTATE_OWNER_DETAIL eod WHERE eod.owner_id = o.owner_id) as owner_name,
+		(SELECT cs.project_name from T_CHARGE_STANDARD cs WHERE o.standard_id = cs.standard_id) as project_name,
+		o.paycost_moneny,o.receivable_moneny,o.money,o.pay_date
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id 
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id 
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1
+		ORDER BY o.pay_date DESC
+	</select>
+	
+	<select id="findPayCostByHouseAndOwnerId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+			p.*, b.standard_name,
+			b.batch,
+			i.estate_name
+		FROM
+			T_PAYCOST p,
+			T_OWNER_BILL b,
+			ESTATE_BUILDING_DETAIL bd,
+			ESTATE_HOUSE_DETAIL h,
+			ESTATE_INFO_DETAIL i
+		WHERE p.bill_id = b.bill_id
+		<if test="house_id != ''"> AND p.house_id = #{house_id} </if>
+		AND b.house_id = h.house_id
+		AND h.building_id = bd.building_id
+		AND bd.estate_id = i.estate_id
+		AND p.owner_id = #{owner_id}
+	</select>
+	
+	<insert id="insert" parameterType="net.merise.platform.orm.base.PayCost">
+		insert into T_PAYCOST (paycost_id,paycost_project,paycost_way,paycost_moneny,paycost_balance,paycost_time,house_id,owner_id,bill_id,receivable_moneny) 
+		values(#{paycost_id},#{paycost_project},#{paycost_way},#{paycost_moneny},#{paycost_balance},#{paycost_time},#{house_id},#{owner_id},#{bill_id},#{receivable_moneny})
+	</insert>
+
+	<!-- 欠费查询 -->
+	<select id="payCostCountLackRecord" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*)
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id
+		JOIN ESTATE_OWNER_DETAIL eod ON o.owner_id = eod.owner_id 
+		WHERE o.status = 0
+	</select>
+	
+	<select id="payCostLackRecord" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT b.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,eod.owner_name,eod.money,h.house_location,o.money as lack_moneny,o.paycost_moneny,o.receivable_moneny,eod.owner_mobile,eod.owner_email
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id
+		JOIN ESTATE_OWNER_DETAIL eod ON o.owner_id = eod.owner_id 
+		WHERE 1 = 1
+		<if test="money == 1">
+			and (eod.money/100-o.money) > 0
+		</if>
+		<if test="money == 2">
+			and (eod.money/100-o.money) &lt; 0
+		</if>
+		and o.status = 0
+	</select>
+</mapper>

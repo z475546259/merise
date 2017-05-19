@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.ImageDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.Image">insert into T_IMAGE (image_id,image_name,image_remark,image_url,image_date,image_owner_table,image_owner_id,image_order) values(#{image_id},#{image_name},#{image_remark},#{image_url},#{image_date},#{image_owner_table},#{image_owner_id},#{image_order})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.Image">update T_IMAGE set image_name = #{image_name},image_remark = #{image_remark},image_url = #{image_url},image_date = #{image_date},image_owner_table = #{image_owner_table},image_owner_id = #{image_owner_id},image_order = #{image_order} where image_id = #{image_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_IMAGE where image_id = #{image_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.Image">select * from T_IMAGE where image_id = #{image_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.Image">select * from T_IMAGE order by image_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer">select count(*) as count from T_IMAGE</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.Image">select * from T_IMAGE order by image_id desc limit ${m}, ${n}</select>
+    
+    <select id="findImageByOwnerId" resultType="net.merise.platform.dao.estate.pojo.Image">
+    	select * from T_IMAGE where image_owner_table=#{image_owner_table} and image_owner_id=#{image_owner_id}
+    </select>
+    
+    <delete id="deleteBy">
+    	delete from T_IMAGE where image_owner_table=#{image_owner_table} and image_owner_id=#{image_owner_id} and image_order=#{image_order}
+    </delete>
+    
+    <select id="findImgByOrder" resultType="net.merise.platform.dao.estate.pojo.Image">
+   		 select * from T_IMAGE where image_owner_table=#{image_owner_table} and image_owner_id=#{image_owner_id} and image_order=#{image_order}
+    </select>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.EstateInfoDetailDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.EstateInfoDetail">insert into ESTATE_INFO_DETAIL (estate_id,estate_name,estate_location,estate_phone,estate_head,estate_head_phone,estate_remark,estate_total_id) values(#{estate_id},#{estate_name},#{estate_location},#{estate_phone},#{estate_head},#{estate_head_phone},#{estate_remark},#{estate_total_id})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.EstateInfoDetail">update ESTATE_INFO_DETAIL set estate_name = #{estate_name},estate_location = #{estate_location},estate_phone = #{estate_phone},estate_head = #{estate_head},estate_head_phone = #{estate_head_phone},estate_remark = #{estate_remark},estate_total_id = #{estate_total_id} where estate_id = #{estate_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_INFO_DETAIL where estate_id = #{estate_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.EstateInfoDetail">select * from ESTATE_INFO_DETAIL where estate_id = #{estate_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.EstateInfoDetail" parameterType="java.util.Map">select * from ESTATE_INFO_DETAIL where estate_name like concat('%', #{estate_name},'%') order by estate_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from ESTATE_INFO_DETAIL where estate_name like concat('%', #{estate_name},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.EstateInfoDetail">select * from ESTATE_INFO_DETAIL where estate_name like concat('%', #{estate_name},'%') order by estate_id desc limit ${m}, ${n}</select>
+    
+    <!-- yxz -->
+    <select id="findEastateInfoByName" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.EstateInfoDetail">select * from ESTATE_INFO_DETAIL where estate_name = #{name}</select>
+</mapper>

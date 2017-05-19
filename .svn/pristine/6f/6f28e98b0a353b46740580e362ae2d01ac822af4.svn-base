@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>房屋信息管理</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="easyui/ifmtech.easyui.extend.js"></script>
+	<script type="text/javascript" src="static/layer/layer.js"></script>
+  </head>
+  
+  <body>
+  	<div id="treeBox" style="float: left;width:auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="房屋信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入查询条件, 格式：1-101"   style="width: 200px; vertical-align: middle;"/>
+	  		<!-- 
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+	         -->
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-my-account" plain="true" id="addOwner">业主登记</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-my-account" plain="true" id="bindOwner">快速登记</a>
+	    </div>
+	    <!-- <div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+			<form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+				<div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">房屋信息</div>
+				<div style="margin-bottom:10px;display: none">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">楼盘编号:</label>
+					<input name="building_id" id="building_id" readonly="readonly" label="楼盘编号:" style="width:66%;">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">楼盘名称: </label>
+					<input name="building_name" id="building_name" readonly="readonly" label="楼盘名称:" style="width:66%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">栋: </label>
+					<input name="house_dong" id="house_dong" required="true" readonly="readonly" label="栋:" style="width:66%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_units" class="easyui-textbox" required="true" label="单元:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_floor" class="easyui-textbox" required="true" label="楼层:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_room" class="easyui-textbox" required="true" label="房号:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_location" class="easyui-textbox" required="true" label="房屋地址:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">房屋户型:</label>
+					<select name="house_type"  id="house_typeCombobox" style="width:68%" required="true" label="户型:"></select>
+					<input name="house_type" class="easyui-textbox" required="true" label="户型:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">朝向:</label>
+					<select name="house_orientation"  id="house_orientationCombobox" style="width:68%" required="true" label="朝向:" ></select>
+					<input name="house_orientation" class="easyui-textbox" required="true" label="朝向:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_build_area" class="easyui-textbox" required="true" label="建筑面积:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<input name="house_in_area" class="easyui-textbox" required="true" label="套内面积:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">房屋状态:</label>
+					<select name="house_status"  id="house_statusCombobox" style="width:68%" required="true" label="房屋状态:" ></select>
+					<input name="house_status" class="easyui-textbox" required="true" label="房屋状态:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">物业类型:</label>
+					<select name="house_sort"  id="house_sortCombobox" style="width:68%" required="true" label="物业类型:" ></select>
+					<input name="house_sort" class="easyui-textbox" required="true" label="物业类型:" style="width:100%">
+				</div>
+				<div style="margin-bottom:10px">
+					<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">房屋结构:</label>
+					<select name="dong_structure"  id="dong_structureCombobox" style="width:68%" required="true" label="房屋结构:" ></select>
+					<input name="house_sort" class="easyui-textbox" required="true" label="物业类型:" style="width:100%">
+				</div>
+			</form>
+		</div>
+		<div id="dlg-buttons">
+			<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+		</div> -->
+	  	<div id="dlg" class="easyui-dialog" style="width:600px;height: 360px;" closed="true" buttons="#dlg-buttons">
+	  		<form id="fm" method="post" novalidate style="margin:0;padding:15px 20px">
+	  			<input name="building_id" id="building_id" type="hidden"  style="width: 180px;">
+	  			<table cellpadding="5" style="width: 100%">
+	  				<tr>
+	    				<td style="text-align: right;">楼盘名称:</td>
+	    				<td><input name="building_name" id="building_name" readonly="readonly" style="width: 180px;"></td>
+	    				<td style="text-align: right;">栋:</td>
+	    				<td> <input name="house_dong" id="house_dong" required="true" readonly="readonly" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">单元:</td>
+	    				<td><input name="house_units" class="easyui-textbox" required="true" style="width: 180px;"></td>
+	    				<td style="text-align: right;">楼层:</td>
+	    				<td><input name="house_floor" class="easyui-textbox" required="true" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">房号:</td>
+	    				<td><input name="house_room" class="easyui-textbox" required="true" style="width: 180px;"></td>
+	    				<td style="text-align: right;">房屋户型:</td>
+	    				<td><select name="house_type"  id="house_typeCombobox" required="true" style="width: 180px;"></select></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">房屋结构:</td>
+	    				<td><select name="dong_structure"  id="dong_structureCombobox" style="width: 180px;" required="true"></select></td>
+	    				<td style="text-align: right;">朝向:</td>
+	    				<td><select name="house_orientation"  id="house_orientationCombobox" required="true" style="width: 180px;"></select></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">建筑面积:</td>
+	    				<td><input name="house_build_area" class="easyui-textbox" required="true"  style="width: 180px;"></td>
+	    				<td style="text-align: right;">套内面积:</td>
+	    				<td><input name="house_in_area" class="easyui-textbox" required="true" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">房屋状态:</td>
+	    				<td><select name="house_status"  id="house_statusCombobox" required="true" style="width: 180px;"></select></td>
+	    				<td style="text-align: right;">物业类型:</td>
+	    				<td><select name="house_sort"  id="house_sortCombobox" required="true" style="width: 180px;"></select></td>
+	    			</tr>
+	  			</table>
+	  		</form>
+	  		<div id="dlg-buttons">
+		        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+		        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+		    </div>
+	  	</div>
+	    
+	    <!-- 新增业主信息登记 -->
+	    <div id="dlg10" class="easyui-dialog" style="width:600px;height: 440px;" closed="true" buttons="#dlg10-buttons">
+	    	<form id="fm10" method="post" novalidate style="margin:0;padding:10px 20px">
+	    		<input type="hidden" name="house_id_value" id="house_id"/>
+	    		<table cellpadding="5" style="width: 100%">
+	    			<tr>
+	    				<td style="text-align: right;">业主姓名:</td>
+	    				<td><input name="owner_name" class="easyui-textbox" type="text" data-options="required:true" style="width: 180px;"></td>
+	    				<td style="text-align: right;">业主手机号:</td>
+	    				<td><input name="owner_mobile" class="easyui-textbox" type="text" data-options="required:true,validType:'mobile'" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">业主身份证:</td>
+	    				<td><input id="owner_idcard" name="owner_idcard" class="easyui-textbox"  data-options="required:true,validType:'idCode'"  style="width: 180px; "></td>
+	    				<td style="text-align: right;">用户类型:</td>
+	    				<td><select name="owner_level"  id="ownerLevelCombobox" required="true"  style="width: 180px;"></select></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">邮箱:</td>
+	    				<td><input name="owner_email" class="easyui-textbox" data-options="validType:'email'"  style="width: 180px;"></td>
+	    				<td style="text-align: right;">房屋状态:</td>
+	    				<td><select name="house_status"  id="house_status1Combobox"required="true" style="width: 180px;"></select></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">合同日期:</td>
+	    				<td><input class="easyui-datebox" name="contract_time_value" labelPosition="top" style="width: 180px;"></td>
+	    				<td style="text-align: right;">接房日期:</td>
+	    				<td><input class="easyui-datebox" name="house_time_value" labelPosition="top" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">装修日期:</td>
+	    				<td><input class="easyui-datebox" name="decorate_time_value" labelPosition="top" style="width: 180px;"></td>
+	    				<td style="text-align: right;">入住日期:</td>
+	    				<td><input class="easyui-datebox" name="live_time_value" labelPosition="top" style="width: 180px;"></td>
+	    			</tr>
+	    			<tr>
+	    				<td style="text-align: right;">用户备注:</td>
+	    				<td colspan="3"><textarea id="" rows=5 name="owner_remark"  class="textarea easyui-validatebox" style="resize: none;width: 440px;"></textarea></td>
+	    			</tr>
+	    		</table>
+	    	</form>
+	    	 <div id="dlg10-buttons">
+		        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveOwner" style="width:90px">保存</a>
+		        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg10').dialog('close')" style="width:90px">取消</a>
+		    </div>
+	    </div>
+	    
+	   <!--  <div id="dlg10" class="easyui-dialog" style="width:60px;height: 600px;" closed="true" buttons="#dlg10-buttons">
+	        <form id="fm10" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:10px">
+	            	<input type="hidden" name="house_id_value" id="house_id"/>
+	                <input name="owner_name" class="easyui-textbox" required="true" label="业主姓名:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="owner_mobile" class="easyui-textbox" data-options="required:true,validType:'mobile'" label="业主手机号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="owner_idcard" class="easyui-textbox" data-options="required:true,validType:'idCode'" label="业主身份证:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	          		<select name="owner_level"  id="ownerLevelCombobox" style="width:100%" required="true" label="用户类型:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="owner_email" class="easyui-textbox" data-options="validType:'email'" label="邮箱:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">房屋状态:</label>
+	          		<select name="house_status"  id="house_status1Combobox" style="width:50%" required="true" label="状态:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">合同日期:</label>
+					<input class="easyui-datebox" name="contract_time_value" labelPosition="top" style="width:50%;">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">接房日期:</label>
+					<input class="easyui-datebox" name="house_time_value" labelPosition="top" style="width:50%;">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">装修日期:</label>
+					<input class="easyui-datebox" name="decorate_time_value" labelPosition="top" style="width:50%;">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">入住日期:</label>
+					<input class="easyui-datebox" name="live_time_value" labelPosition="top" style="width:50%;">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">用户备注:</label>
+	                <textarea id="" rows=5 name="owner_remark"  class="textarea easyui-validatebox" style="resize: none;"></textarea>
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg10-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveOwner" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg10').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	     -->
+	    
+	    <!-- 初始化楼栋信息 -->
+	    <div id="dlg3" class="easyui-dialog" style="width:770px;height: 300px;" closed="true" buttons="#dlg3-buttons">
+	        <form id="fm3" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:10px;width: 205px;float: left;">
+	                <input name="dong_name" class="easyui-textbox" data-options="required:true,validType:['number']" label="楼盘栋号:" style="width:100%;">
+	            </div>
+	            <div style="margin-bottom:10px;margin-left:10px;width: 205px;float: left;">
+	                <input name="floor" class="easyui-textbox" data-options="required:true,validType:['number']" required="true" label="楼层数量:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px;margin-left:10px;width: 205px;float: left;">
+	                <input name="unit" class="easyui-textbox" data-options="required:true,validType:['number']" required="true" label="单元号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px;width: 205px;float: left;">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">物业类型:</label>
+	                <select name="house_sort" id="house_sort" style="width: 55%">
+	                	
+	                </select>
+	            </div>
+	            
+	            <div style="margin-bottom:10px;font-size:14px;border-bottom:1px solid #ccc;width: 205px;">户型信息</div>
+	            <div style="margin-bottom:10px;width: 205px;">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">单层户数:</label>
+	                <input name="floor_count" id="floor_count" onchange="load()" style="width:53%">
+	                <input name="building_idInit" id="building_idInit" style="display: none;">
+	            </div>
+	            <div id="house" style="display: none">
+	            	
+	            </div>
+	        </form>
+	    </div>
+	    <!--初始化车库信息-->
+	    <div id="dlg4" class="easyui-dialog" style="width:600px;" closed="true" buttons="#dlg4-buttons">
+	        <form id="fm4" method="post" novalidate style="margin:0;padding:20px 50px">
+	        	<input name="building_idInit2" id="building_idInit2" style="display: none;">
+	        	<table cellpadding="0" width="100%">
+	        		<tr style="height: 30px;">
+	        			<td>车库类型:</td>
+	        			<td><select name="park_style" id="park_style" style="width: 150px;"></select></td>
+	        			<td>车位状态:</td>
+	        			<td><select name="park_statu" id="park_statu" style="width: 150px;"></select></td>
+	        		</tr>
+	        		<tr style="height: 30px;">
+	        			<td>车库区域:</td>
+	        			<td colspan="3"><input name="area_name" class="easyui-textbox" data-options="required:true" style="width:150px;"></td>
+	        		</tr>
+	        		<tr style="height: 30px;">
+	        			<td>车位起始号码:</td>
+	        			<td><input name="begin_number" class="easyui-numberbox" data-options="required:true,validType:'length[1,3]'" required="true" style="width:150px;"></td>
+	        			<td>车位结束号码:</td>
+	        			<td><input name="end_number" class="easyui-numberbox" data-options="required:true,validType:'length[1,3]'" required="true" style="width:150px;"></td>
+	        		</tr>
+	        		<tr style="height: 30px;">
+	        			<td>车位长度:</td>
+	        			<td><input name="length" class="easyui-numberbox" data-options="required:true,validType:'length[1,3]'" required="true" style="width:150px;"></td>
+	        			<td>车位宽度:</td>
+	        			<td><input name="width" class="easyui-numberbox" data-options="required:true,validType:'length[1,3]'" required="true" style="width:150px;"></td>
+	        		</tr>
+	        	</table>
+	        </form>
+	    </div>
+	    <div id="dlg3-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveInit" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg3').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    <div id="dlg4-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveInit2" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg4').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	</div>
+	
+	
+	<div id="contextBox1" style="float: right; display: none;">
+		<table id="dg1" title="房屋信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar1" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar1">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="init">初始化住房/商铺</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="init2">初始化车库</a>
+	    </div>
+	</div>
+  	
+  	<!-- 详情 -->
+  	<div id="dlg1" class="easyui-dialog" closed="true" >
+        <form id="fm" method="post" novalidate style="margin:0;">
+            <table id="tt" style="width:600px;height:370px"  singleSelect="true" >
+            
+            
+			</table>
+        </form>
+    </div>
+    
+    <!-- 业主绑定 -->
+    <div id="dlg14" class="easyui-dialog" style="width:400px;height: 200px;" closed="true" buttons="#dlg14-buttons">
+    	<form id="fm14" method="post" novalidate style="margin:0;padding:30px 20px">
+    		<input type="hidden" name="building_id" id="building_id_bind"/>
+    		<input type="hidden" name="house_id" id="house_id_bind"/>
+    		<input name="owner_idcard" class="easyui-textbox" data-options="required:true,validType:'idCode'" label="业主身份证:" style="width:100%">
+    	</form>
+    	 <div id="dlg14-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="bindBtnOwner" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg14').dialog('close')" style="width:90px">取消</a>
+	    </div>
+    </div>
+    <script type="text/javascript">
+    
+    var building_id = "";
+    var dong = "";
+    var building_name = "";
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+			 formatter:function(node){
+				 var s = node.text;
+				 if (s.indexOf("栋") == -1) {
+					 if (s.indexOf("车库") == -1) {
+					 	s = s.replace("-","栋-");
+					 }
+				 }
+				 return s;
+			 },
+		     onClick: function(node){
+		    	 	building_id = node.id;//楼盘id
+		    	 	dong = node.attributes.house_dong;// 栋
+		    	 	building_name = $(this).tree("getParent",node.target).text;
+					if (node.attributes.level == "house") {
+						$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+						$("#contextBox").show();
+						$("#contextBox1").hide();
+		    		// 车库处理
+		    		if (node.text.indexOf("车库") != -1) {
+		    			$("#dg").datagrid({
+		        			remoteSort:false,
+		        			nowrap:false,
+		        			pagination: true, //显示分页
+		                    pageSize: 10, //页大小
+		                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+		        			url:'estateHouse/index?building_id='+building_id+'&dong='+dong,
+		        			columns:[[
+		        				{field:'house_id',title:'房屋编号',width:80,align:'center'},
+		        				{field:'building_id',title:'楼盘编号',width:80,align:'center'},
+		        				{field:'house_dong',title:'车库区域',width:100,align:'center'},
+		        				{field:'house_units',title:'单元',width:100,align:'center'},
+		        				{field:'house_floor',title:'楼层',width:80,align:'center'},
+		        				{field:'house_room',title:'车库号码',width:100,align:'center'},
+		        				{field:'house_location',title:'房屋坐落',width:80,align:'center'},
+		        				{field:'house_type',title:'户型',width:80,align:'center'},
+		        				{field:'house_type_text',title:'户型',width:80,align:'center'},
+		        				{field:'house_orientation',title:'朝向',width:80,align:'center'},
+		        				{field:'house_orientation_text',title:'朝向',width:50,align:'center'},
+		        				{field:'house_build_area',title:'车位长度',width:100,align:'center'},
+		        				{field:'house_in_area',title:'车位宽度',width:100,align:'center'},
+		        				{field:'house_status',title:'房屋状态编号',width:80,align:'center'},
+		        				{field:'house_status_text',title:'车位状态',width:100,align:'center'},
+		        				{field:'house_sort',title:'物业类型',width:50,align:'center'},
+		        				{field:'house_sort_text',title:'物业类型',width:100,align:'center'},
+		        				{field:'dong_structure',title:'房屋结构',width:80,align:'center'},
+		        				{field:'dong_structure_text',title:'房屋结构',width:60,align:'center'}
+		        			]]
+		        		});
+		    			$("#dg").datagrid('hideColumn', 'house_id');
+			    		$("#dg").datagrid('hideColumn', 'building_id');
+			    		$("#dg").datagrid('hideColumn', 'house_location');
+			    		$("#dg").datagrid('hideColumn', 'house_type');
+			    		$("#dg").datagrid('hideColumn', 'house_orientation');
+			    		$("#dg").datagrid('hideColumn', 'house_status');
+			    		$("#dg").datagrid('hideColumn', 'house_sort');
+			    		$("#dg").datagrid('hideColumn', 'dong_structure');
+			    		$("#dg").datagrid('hideColumn', 'house_units');
+			    		$("#dg").datagrid('hideColumn', 'house_floor');
+			    		$("#dg").datagrid('hideColumn', 'house_type_text');
+			    		$("#dg").datagrid('hideColumn', 'house_orientation_text');
+			    		$("#dg").datagrid('hideColumn', 'dong_structure_text');
+			    	// 住房和商铺处理
+		    		} else {
+		    			$("#dg").datagrid({
+		        			remoteSort:false,
+		        			nowrap:false,
+		        			pagination: true, //显示分页
+		                    pageSize: 10, //页大小
+		                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+		        			url:'estateHouse/index?building_id='+building_id+'&dong='+dong,
+		        			columns:[[
+		        				{field:'house_id',title:'房屋编号',width:80,align:'center'},
+		        				{field:'building_id',title:'楼盘编号',width:80,align:'center'},
+		        				{field:'house_dong',title:'栋',width:100,align:'center'},
+		        				{field:'house_units',title:'单元',width:100,align:'center'},
+		        				{field:'house_floor',title:'楼层',width:80,align:'center'},
+		        				{field:'house_room',title:'房号',width:80,align:'center'},
+		        				{field:'house_location',title:'房屋坐落',width:80,align:'center'},
+		        				{field:'house_type',title:'户型',width:80,align:'center'},
+		        				{field:'house_type_text',title:'户型',width:80,align:'center'},
+		        				{field:'house_orientation',title:'朝向',width:80,align:'center'},
+		        				{field:'house_orientation_text',title:'朝向',width:50,align:'center'},
+		        				{field:'house_build_area',title:'建筑面积',width:50,align:'center'},
+		        				{field:'house_in_area',title:'套内面积',width:50,align:'center'},
+		        				{field:'house_status',title:'房屋状态编号',width:80,align:'center'},
+		        				{field:'house_status_text',title:'房屋状态',width:50,align:'center'},
+		        				{field:'house_sort',title:'物业类型',width:50,align:'center'},
+		        				{field:'house_sort_text',title:'物业类型',width:50,align:'center'},
+		        				{field:'dong_structure',title:'房屋结构',width:80,align:'center'},
+		        				{field:'dong_structure_text',title:'房屋结构',width:60,align:'center'}
+		        			]]
+		        		});
+		    			$("#dg").datagrid('hideColumn', 'house_id');
+			    		$("#dg").datagrid('hideColumn', 'building_id');
+			    		$("#dg").datagrid('hideColumn', 'house_location');
+			    		$("#dg").datagrid('hideColumn', 'house_type');
+			    		$("#dg").datagrid('hideColumn', 'house_orientation');
+			    		$("#dg").datagrid('hideColumn', 'house_status');
+			    		$("#dg").datagrid('hideColumn', 'house_sort');
+			    		$("#dg").datagrid('hideColumn', 'dong_structure');
+		    		}
+		         }else if(node.attributes.level == "build"){
+		        	 $("#contextBox1").width($(document.body).width() - $("#treeBox").width() - 10);
+		        	 $("#contextBox1").show();
+		        	 $("#contextBox").hide();
+		        	 
+		        	//根据左边楼盘查询每栋信息
+		    		 $("#dg1").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'estateHouse/findDongInfo?building_id='+building_id,
+	        			columns:[[
+	        				{field:'building_name',title:'楼盘名称',width:80},
+	        				{field:'house_dong',title:'栋号',width:80},
+	        				{field:'roomcount',title:'房屋总量',width:80},
+	        				{field:'floor',title:'总楼层数',width:80},
+	        			]]
+	        		});
+		        	 
+		         }else{
+		        	 $("#contextBox").hide();
+		        	 $("#contextBox1").hide();
+		         }
+	    	 }
+		 }); 
+	 });
+
+    function doSearch(value){ //点击搜素,触发此函数
+        $("#dg").datagrid({ 
+            url:'estateHouse/index?searchValue='+value+'&building_id='+building_id+'&dong='+dong, //触发此action,带上参数searcValue  
+        })
+    }
+    
+    var houseHtml = "";
+    $(document).on("click","#init",function(){
+    	$("#dlg3").dialog("open").dialog("center").dialog("setTitle","楼宇初始化");
+    	
+    	var houseWuye = "";
+    	$.ajax({
+            type: "POST",
+            url: "estateHouse/findBuildingCode",
+            data: {building_id:building_id},
+            dataType: "json",
+            success: function(data){
+            	houseHtml = "<option value='0'>无</option>";
+           		$.each(data, function(commentIndex, comment){
+           			if(comment['code_name'] == "房屋户型"){
+           				houseHtml += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+           			}else if(comment['code_name'] == "物业类型"){
+           				if(comment['code_content'] == "住房"){
+           					houseWuye += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+           				}else{
+           					houseWuye += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>";
+           				}
+           			}
+            	});
+           		$("#house_sort").html("");
+           		$("#house_sort").append(houseWuye);
+            }
+        });
+    	$("#fm3").form("clear");
+    	$("#building_idInit").val(building_id);
+    	$("#floor_count").val("0");
+    	$("#house").html("");
+	});
+	$(document).on("click","#init2",function(){
+    	$("#dlg4").dialog("open").dialog("center").dialog("setTitle","车库初始化");
+    	
+    	var houseWuye = "";
+    	$.ajax({
+            type: "POST",
+            url: "estateCodeEetail/findByCodeNameAndBuildingId",
+            data: {"code_name":"车库类型","building_id":building_id},
+            //data: {building_id:building_id},
+            dataType: "json",
+            success: function(data){
+            	parkHtml = "";
+           		$.each(data, function(commentIndex, comment){
+           			if(comment['code_name'] == "车库类型"){
+           				parkHtml += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+           			}
+            	});
+           		$("#park_style").html("");
+           		$("#park_style").append(parkHtml);
+            }
+        });
+    	$.ajax({
+            type: "POST",
+            url: "estateCodeEetail/findByCodeNameAndBuildingId",
+            data: {"code_name":"房屋状态","building_id":building_id},
+            dataType: "json",
+            success: function(data){
+            var moren;
+            	houseHtml = "";
+           		$.each(data, function(commentIndex, comment){
+           			if(comment['code_name'] == "房屋状态" && comment['code_remark'] == '待售'){
+           				houseHtml += "<option value="+comment['code_id']+" selected ='true'>"+comment['code_remark']+"</option>"; 
+           				moren = comment['code_id'];
+           			}else{
+           				houseHtml += "<option value="+comment['code_id']+">"+comment['code_remark']+"</option>";
+           			}
+            	});
+           		$("#park_statu").html("");
+           		$("#park_statu").append(houseHtml);
+           	//	$("#park_statu").combobox("select", moren);
+           		$("#park_statu option[value='"+moren+"']").attr("selected","selected");
+            }
+        });
+    	$("#fm4").form("clear");
+    	$("#building_idInit2").val(building_id);
+	});
+    
+    function load(){
+    	$("#house").html("");
+    	var html = "";
+    	var count = $("#floor_count").val();
+    	for (var int = 1; int <= count; int++) {
+    		html += '<div style="margin-bottom:10px;width:205px;float: left;">'+
+        				'<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">'+int+'门户型:</label>'+
+            				'<select style="width: 55%" name="house_type">'+houseHtml+'</select>'+
+				        	'</div>'+
+				       		'<div style="margin-bottom:10px;margin-left:10px;width: 205px;float: left;">'+
+				       			'<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">建筑面积:</label>'+
+				            	'<input name="house_build_area" required="true" value="0" style="width:55%">'+
+				        	'</div>'+
+				        	'<div style="margin-bottom:10px;margin-left:10px;width: 205px;float: left;">'+
+				        		'<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">套内面积:</label>'+
+				            	'<input name="house_in_area" required="true" value="0" style="width:55%">'+
+				        	'</div>';
+		}
+    	$("#house").append(html);
+    	$("#house").show();
+    }
+    
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		$("#fm").form("clear");
+             var url_code = 'estateCodeEetail/findByCodeNameAndBuildingId';
+             $.ajax({
+	             type: "POST",
+	             url: url_code,
+	             data: {code_name:"房屋户型",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "<option value='0'>无</option>";
+	            	$.each(data, function(commentIndex, comment){
+                        html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                 	});
+	            	$("#house_typeCombobox").html("");
+	            	$("#house_typeCombobox").append(html);
+	             }
+	         });
+			
+			$.ajax({
+	             type: "POST",
+	             url: url_code,
+	             data: {code_name:"房屋朝向",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "<option value='0'>无</option>";
+	            	$.each(data, function(commentIndex, comment){
+                       	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                	});
+	            	$("#house_orientationCombobox").html("");
+	            	$("#house_orientationCombobox").append(html);
+	             }
+	         });
+			
+			$.ajax({
+	             type: "POST",
+	             url: url_code,
+	             data: {code_name:"房屋状态",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "";
+	            	$.each(data, function(commentIndex, comment){
+                    	html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                	});
+	            	$("#house_statusCombobox").html("");
+	            	$("#house_statusCombobox").append(html);
+	             }
+	         });
+			
+			$.ajax({
+	             type: "POST",
+	             url: url_code,
+	             data: {code_name:"物业类型",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "";
+	            	$.each(data, function(commentIndex, comment){
+                        html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                	});
+	            	$("#house_sortCombobox").html("");
+	            	$("#house_sortCombobox").append(html);
+	             }
+	         });
+    		
+			$.ajax({
+	             type: "POST",
+	             url: url_code,
+	             data: {code_name:"房屋结构",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "";
+	            	$.each(data, function(commentIndex, comment){
+                        html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+               		});
+	            	$("#dong_structureCombobox").html("");
+	            	$("#dong_structureCombobox").append(html);
+	             }
+	         });
+			
+			$("#building_id").val(building_id);
+			$("#building_name").val(building_name);
+			$("#house_dong").val(dong);
+			
+			$("#dlg").dialog("open").dialog("center").dialog("setTitle","新增房屋信息");
+            
+            url = "estateHouse/save";
+    	});
+		$(document).on("click", "#edit", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+				var url_code = 'estateCodeEetail/findByCodeNameAndBuildingId';
+                var id = row.building_id;
+				$.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"房屋户型",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "<option value='0'>无</option>";
+		            	$.each(data, function(commentIndex, comment){
+                             if(row.house_type == comment['code_id']){
+                            	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+                             }else{
+                            	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                             }
+                     	});
+		            	$("#house_typeCombobox").html("");
+		            	$("#house_typeCombobox").append(html);
+		             }
+		         });
+				
+				$.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"房屋朝向",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "<option value='0'>无</option>";
+		            	$.each(data, function(commentIndex, comment){
+		            		if(row.house_orientation == comment['code_id']){
+                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+                            }else{
+                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                            }
+                    	});
+		            	$("#house_orientationCombobox").html("");
+		            	$("#house_orientationCombobox").append(html);
+		             }
+		         });
+				$.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"房屋状态",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+		            		if(row.house_status_text == "待售"){
+		            			if(!(comment['code_content']=="售出"||comment['code_content']=="接房")){
+		            				console.info(row.house_status == comment['code_id']);
+		            				if(row.house_status == comment['code_id']){
+		            					html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+		            				}else{
+		            					html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>";
+		            				}
+		            			}
+		            		}else{
+		            			if(row.house_status == comment['code_id']){
+		                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+		                        }else{
+		                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+		                        }
+		            		}
+		            		/* if(row.house_status_text == "待售"){
+		            			if(row.house_status == comment['code_id']){
+		                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+		                        }else{
+		                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+		                        }
+		            		}else{
+		            			if(comment['code_content'] != "待售"){
+		            				if(row.house_status == comment['code_id']){
+			                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+			                        }else{
+			                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+			                        }
+		            			}
+		            		} */
+                    	});
+		            	$("#house_statusCombobox").html("");
+		            	$("#house_statusCombobox").append(html);
+		             }
+		         });
+				
+				$.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"物业类型",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+		            		if(row.house_sort == comment['code_id']){
+	                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+	                            }else{
+	                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+	                            }
+                    	});
+		            	$("#house_sortCombobox").html("");
+		            	$("#house_sortCombobox").append(html);
+		             }
+		         });
+        		
+				$.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"房屋结构",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+		            		if(row.dong_structure == comment['code_id']){
+	                           	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+	                            }else{
+	                           	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+	                            }
+                   		});
+		            	$("#dong_structureCombobox").html("");
+		            	$("#dong_structureCombobox").append(html);
+		             }
+		         });
+				
+				
+				
+				$("#dlg").dialog("open").dialog("center").dialog("setTitle","修改房屋信息");
+                $("#fm").form("load",row);
+                url = "estateHouse/update?id="+row.house_id;
+            }
+    	});
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("提示信息","是否确认删除该房屋信息?",function(r){
+                    if (r){
+                        $.post("estateHouse/delete",{id:row.house_id},function(result, status){
+                        	
+                        },"json");
+                        $("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(d){
+                	$("#dlg").dialog("close");
+                    $("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+                    $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		$(document).on("click", "#detail", function(){
+			var editRow = undefined; //定义全局变量：当前编辑的行
+			var datagrid; //定义全局变量datagrid
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg1").dialog("open").dialog("center").dialog("setTitle","房屋详情");
+                $("#fm").form("load",row);
+                
+                datagrid=$("#tt").datagrid({
+        			remoteSort:false,
+        			singleSelect:true,
+        			nowrap:false,
+        			fitColumns:true,
+        			pagination: true, //显示分页
+                    pageSize: 10, //页大小 
+                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+        			url:'estateConfig/find?owner_id='+row.house_id+'&owner_table=estate_house_detail',
+        			columns:[[
+        				{field:'config_id',title:'编号',width:80},
+        				{field:'col_name',title:'列名',width:50, editor: { type: 'validatebox', options: { required: true} }},
+        				{field:'col_context',title:'值',width:120, editor: { type: 'validatebox', options: { required: true} }}
+        			]],
+        			onDblClickRow: function (rowIndex, rowData) {
+        				editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                       //双击开启编辑行
+                       if (editRow != undefined) {
+                           datagrid.datagrid("endEdit", editRow);
+                       }
+                       if (editRow == undefined) {
+                           datagrid.datagrid("beginEdit", rowIndex);
+                           editRow = rowIndex;
+                       }
+                    },
+                    onAfterEdit: function (rowIndex, rowData, changes) {
+                        //endEdit该方法触发此事件
+                        console.info(rowData);
+                        editRow = undefined;
+                    },
+                    toolbar:[{ text: '保存', iconCls: 'icon-save', handler: function () {
+                    	//保存时结束当前编辑的行，自动触发onAfterEdit事件如果要与后台交互可将数据通过Ajax提交后台
+                        var index=editRow;//修改的行数
+                        datagrid.datagrid("endEdit", editRow);
+                        //获取修改行的所有数据
+                        var rows =datagrid.datagrid("getRows");
+                        //获取修后该行所有field的值，在这里将修改后数据写入到数据库中
+                        var rowData = rows[index];
+                        var col_name=rowData.col_name;
+                        var col_context=rowData.col_context;
+                        var config_id=rowData.config_id;
+                        if(config_id!=undefined){
+                        	//修改
+                            $.post("estateConfig/edit",{config_id:config_id,col_name:col_name,col_context:col_context},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                            
+                        }else{
+                        	//保存
+                        	$.post("estateConfig/save",{col_name:col_name,col_context:col_context,owner_table:"estate_house_detail",owner_id:row.house_id},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                        }
+                        
+                    }
+                    },{ text: '添加', iconCls: 'icon-add', handler: function () {//添加列表的操作按钮添加，修改，删除等
+                    	editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                        
+                        //添加时先判断是否有开启编辑的行，如果有则把开户编辑的那行结束编辑
+                        if (editRow != undefined) {
+                            datagrid.datagrid("endEdit", editRow);
+                        }
+                        //添加时如果没有正在编辑的行，则在datagrid的第一行插入一行
+                        if (editRow == undefined) {
+                            datagrid.datagrid("insertRow", {
+                                index: 0, // index start with 0
+                                row: {
+                                }
+                            });
+                            //将新插入的那一行开户编辑状态
+                            datagrid.datagrid("beginEdit", 0);
+                            //给当前编辑的行赋值
+                            editRow = 0;
+                        }
+
+                    }
+                    },{ text: '删除', iconCls: 'icon-remove', handler: function () {
+                        //删除时先获取选择行
+                        var rows = datagrid.datagrid("getSelections");
+                        //选择要删除的行
+                        if (rows.length > 0) {
+                            $.messager.confirm("提示", "你确定要删除吗?", function (r) {
+                                if (r) {
+                                    var config_id=rows[0].config_id;
+                                    //删除
+                                    $.post("estateConfig/delete",{config_id:config_id},function(result, status){
+                                    },"json");
+                                    $("#tt").datagrid("reload");
+                                }
+                            });
+                        }
+                        else {
+                            $.messager.alert("提示", "请选择要删除的行", "error");
+                        }
+                    }
+                    },{ text: '取消编辑', iconCls: 'icon-redo', handler: function () {
+                        //取消当前编辑行把当前编辑行罢undefined回滚改变的数据,取消选择的行
+                        editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                    }
+                    }]
+        		});
+                
+                $("#tt").datagrid('hideColumn', 'config_id');
+            }
+    	});
+		//验证身份证格式
+		function checkIdCard(){
+			var reg=/^[1-9]{1}[0-9]{14}$|^[1-9]{1}[0-9]{16}([0-9]|[xX])$/;
+			if(reg.test($("input[name='owner_idcard']").value)){
+				alert("ok");
+			}else{
+				alert("no");
+			}
+		}
+		
+		 //新增业主信息
+		$(document).on("click", "#addOwner", function(){
+			//判断该房屋是否为待售
+            var row = $("#dg").datagrid("getSelected");
+            if(row.house_status_text=='待售'){
+            	$("#dlg10").dialog("open").dialog("center").dialog("setTitle"," 业主信息登记");
+                $("#dlg10").form("clear");
+                url = "owner/save";
+            	var building_id=row.building_id;
+                var house_id=row.house_id;
+                $("#house_id").val(house_id);
+                $("#ownerLevelCombobox").combobox({
+               		url:'estateCodeEetail/findByCodeNameAndBuildingId?building_id='+building_id+'&code_name=业主分类',
+               		valueField:'code_id',
+               		textField:'code_content',
+               		onLoadSuccess:function(){
+            			var ownerLevelData = $("#ownerLevelCombobox").combobox("getData");
+            			$("#ownerLevelCombobox ").combobox("select", ownerLevelData[0].code_id);
+               		}
+               	});
+                var url_code = 'estateCodeEetail/findByCodeNameAndBuildingId';
+                var id = row.building_id;
+                $.ajax({
+		             type: "POST",
+		             url: url_code,
+		             data: {code_name:"房屋状态",building_id:id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+		            		if(comment['code_content'] != "待售"){
+		            			if(comment['code_content']=="售出"){
+		            				html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+		            			}
+		            		} 
+                  		});
+		            	$("#house_status1Combobox").html("");
+		            	$("#house_status1Combobox").append(html);
+		             }
+		         });
+            }else{
+            	$.messager.alert("提示", "该房源已出售!", "error");
+            }
+   		});
+		 
+		$(document).on("click", "#saveOwner", function(){
+			$("#fm10").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(data){
+                   $("#dlg10").dialog("close");
+                   $("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		$("#saveInit").on("click",function(){
+			$.messager.confirm("提示", "保存后当前栋房屋数据将会被覆盖，请谨慎操作！", function (r) {
+                if (r) {
+                	layer.msg('正在初始化,请稍候...', {icon: 16,shade: 0.05,time:0});
+                	$("#fm3").form("submit",{
+                        url: "estateHouse/initHouse",
+                        onSubmit: function(){
+                            return $(this).form("validate");
+                        },
+                        success: function(result){
+                           $("#dlg3").dialog("close");
+                           $("#dg1").datagrid("reload");
+                           location.reload();
+                           layer.closeAll();
+                        }
+                    });
+                }
+            });
+		});
+		$("#saveInit2").on("click",function(){
+			$.messager.confirm("提示", "保存后当前栋房屋数据将会被覆盖，请谨慎操作！", function (r) {
+                if (r) {
+                	layer.msg('正在初始化,请稍候...', {icon: 16,shade: 0.05,time:0});
+                	$("#fm4").form("submit",{
+                        url: "estateHouse/initPark",
+                        onSubmit: function(){
+                            return $(this).form("validate");
+                        },
+                        success: function(result){
+                           $("#dlg4").dialog("close");
+                           $("#dg1").datagrid("reload");
+                           location.reload();
+                           layer.closeAll();
+                        }
+                    });
+                }
+            });
+		});
+		
+		//业主绑定
+		$("#bindOwner").click(function(){
+			var row = $("#dg").datagrid("getSelected");
+			if(row.house_status_text=='待售'){
+				$("#dlg14").dialog("open").dialog("center").dialog("setTitle"," 业主信息登记");
+                $("#dlg14").form("clear");
+                $("#building_id_bind").val(row.building_id);
+                $("#house_id_bind").val(row.house_id);
+			}else{
+				$.messager.alert("提示", "该房源已出售!", "error");
+			}
+		})
+		
+		$("#bindBtnOwner").click(function(){
+			$("#fm14").form("submit",{
+                url: "owner/bind",
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(data){
+                	var d=JSON.parse(data);
+                   $("#dlg14").dialog("close");
+                   $("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+                   $("#dg").datagrid("reload");
+                }
+            });
+			
+		})
+		$.extend($.fn.validatebox.defaults.rules, {
+			idCode:{  
+                validator:function(value,param){  
+                    return /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/.test(value);  
+                },  
+                message: '请输入正确的身份证号'  
+            }
+		});  
+    </script>
+  </body>
+</html>

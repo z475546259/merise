@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.EstateHouseDetailDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.EstateHouseDetail">insert into ESTATE_HOUSE_DETAIL (house_id,building_id,house_dong,house_units,house_floor,house_room,house_location,house_type,house_orientation,house_build_area,house_in_area,house_status,house_sort,dong_structure) values(#{house_id},#{building_id},#{house_dong},#{house_units},#{house_floor},#{house_room},#{house_location},#{house_type},#{house_orientation},#{house_build_area},#{house_in_area},#{house_status},#{house_sort},#{dong_structure})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.EstateHouseDetail">update ESTATE_HOUSE_DETAIL set house_units = #{house_units},house_floor = #{house_floor},house_room = #{house_room},house_location = #{house_location},house_type = #{house_type},house_orientation = #{house_orientation},house_build_area = #{house_build_area},house_in_area = #{house_in_area},house_status = #{house_status},house_sort = #{house_sort},dong_structure=#{dong_structure} where house_id = #{house_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_HOUSE_DETAIL where house_id = #{house_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateHouseDetail">select * from ESTATE_HOUSE_DETAIL where house_id = #{house_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.EstateHouseDetail" parameterType="java.util.Map">select * from ESTATE_HOUSE_DETAIL where house_floor like concat('%', #{house_floor},'%') order by house_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from ESTATE_HOUSE_DETAIL where building_id=#{id} and house_dong=#{dong} and house_location like concat('%', #{house_location},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateHouseDetail">
+	select 
+		a.*,
+		(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.house_status)  as house_status_text,
+		(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.house_type)  as house_type_text,
+		(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.house_orientation)  as house_orientation_text,
+		(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.house_sort)  as house_sort_text,
+		(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.dong_structure)  as dong_structure_text,
+		(select c.building_name from ESTATE_BUILDING_DETAIL c where c.building_id=a.building_id)  as building_name
+		from ESTATE_HOUSE_DETAIL a
+		where building_id=#{id} and house_dong=#{dong} and house_location like concat('%', #{house_location},'%') 
+		order by (house_units+0),(house_floor+0),(house_room+0) 
+		limit ${m}, ${n}
+	</select>
+	
+	<select id="findDong" parameterType="java.lang.String" resultType="java.lang.String">
+		select DISTINCT house_dong from ESTATE_HOUSE_DETAIL where building_id=#{id} order by house_dong asc
+	</select>
+	
+	<select id="findHouseDongAndType" parameterType="java.lang.String" resultType="java.util.Map">
+		select DISTINCT h.house_dong,c.code_content from ESTATE_HOUSE_DETAIL h, ESTATE_CODE_DETAIL c where h.house_sort = c.code_id and h.building_id = #{building_id}
+	</select>
+	
+	<select id="findUtil" parameterType="java.lang.String" resultType="java.util.Map">
+		select DISTINCT house_units as lable,house_units as lables from ESTATE_HOUSE_DETAIL where building_id=#{building_id} and house_dong=#{house_dong} order by house_units asc
+	</select>
+	
+	<select id="findFloors" parameterType="java.util.Map" resultType="java.util.Map">
+		select DISTINCT house_floor as lable,house_floor as lables from ESTATE_HOUSE_DETAIL where building_id=#{building_id} 
+			<if test="starFloor != null">
+				and <![CDATA[ house_floor >= #{starFloor} ]]>
+			</if>
+			and house_dong = #{house_dong}
+			and house_units = #{house_units}
+		 order by house_floor asc
+	</select>
+
+	<select id="findByBuildingAndDong" parameterType="java.util.Map" resultType="java.util.Map">
+		select DISTINCT a.house_dong,b.building_name,COUNT(a.house_room) as roomcount,MAX((a.house_floor+0)) as floor from 
+			ESTATE_HOUSE_DETAIL a,
+			ESTATE_BUILDING_DETAIL b
+			where a.building_id=b.building_id and b.building_id=#{building_id}
+			GROUP BY b.building_name,a.house_dong
+			ORDER BY b.building_name DESC, a.house_dong ASC
+			LIMIT ${m},${n}
+	</select>
+	
+	<delete id="deleteByBuildingAndDongAndUnits" parameterType="java.util.Map">
+		delete from ESTATE_HOUSE_DETAIL where building_id=#{building_id} and house_dong=#{house_dong} and house_units=#{house_units}
+	</delete>
+	
+	<select id="findHouseByBuildingDongUnitsFloor" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateHouseDetail">
+		select * from ESTATE_HOUSE_DETAIL where      
+			building_id = #{building_id} and house_dong=#{house_dong} and house_units = #{house_units} and <![CDATA[ house_floor >= #{starFloor} ]]> and <![CDATA[ house_floor <= #{endFloor} ]]> 
+			order by house_dong,house_units,house_floor
+	</select>
+	
+	<select id="findHouseByOwnerId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT DISTINCT
+			ehd.*, ebd.*
+		FROM
+			ESTATE_HOUSE_DETAIL ehd,
+			ESTATE_OWNER_HOUSE_DETAIL ohd,
+			ESTATE_BUILDING_DETAIL ebd
+		WHERE ehd.house_id = ohd.house_id
+		AND ebd.building_id = ehd.building_id
+		AND ohd.owner_id = #{owner_id}
+		ORDER BY
+			ebd.building_developer,
+			ebd.building_projectname,
+			ebd.building_name
+	</select>
+	
+	<!-- 根据楼盘号，栋号，房屋单元，楼屋，房号查询房屋是否存在 -->
+	<select id="getEstateHouseBYParams" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateHouseDetail">
+		SELECT * FROM ESTATE_HOUSE_DETAIL WHERE building_id = #{building_id} and house_dong = #{house_dong} AND house_units = #{house_units} and house_floor = #{house_floor} and house_room = #{house_room}
+		<!-- SELECT hd.* FROM estate_house_detail hd
+		JOIN t_house_number hn ON hn.house_id = hd.house_id
+		WHERE hd.building_id = #{building_id} and hd.house_dong = #{house_dong} AND hd.house_units = #{house_units} and hd.house_floor = #{house_floor} and hd.house_room = #{house_room} 
+		and hn.electricity_number = #{electricity_number} and hn.water_number = #{water_number} and hn.gas_number = #{gas_number} -->
+	</select>
+	
+	<!-- 根据楼盘id获取房屋 -->
+	 <select id="findOwenHouseCharge" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+			h.house_id,cs.house_dong,h.house_units,h.house_floor,h.house_room,h.house_build_area,
+			cs.standard_id,cs.project_name,cs.denominated_unit,cs.standard_price,cs.coefficient,cs.start_floor,cs.end_floor,cs.premium,cs.create_time
+		from ESTATE_HOUSE_DETAIL h
+		JOIN t_house_charge_relation hc ON hc.house_id = h.house_id
+		JOIN t_charge_standard cs ON hc.standard_id = cs.standard_id
+		where h.house_id = #{house_id}
+	</select>
+	
+	<!-- 根据楼盘id获取房屋 -->
+	<select id="findEstateHouseDetailByBuildingId" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateHouseDetail">
+		select * from ESTATE_HOUSE_DETAIL where building_id = #{building_id}
+	</select>
+	
+	
+	
+	<select id="findBillDataByBuildingId" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+			hd.*, ob.batch,
+			ob.money,
+			ob.standard_id,
+			ob.standard_name,
+			ob.owner_id,
+			od.owner_name,
+			od.owner_email,
+			od.owner_mobile,
+			od.owner_idcard,
+			(select ue.client_id from T_USER_EXTEND ue where ue.owner_id = od.owner_id) as clientid,
+			bt.type_name
+		FROM
+			ESTATE_HOUSE_DETAIL hd,
+			T_OWNER_BILL ob,
+			ESTATE_OWNER_DETAIL od,
+			T_CHARGE_STANDARD cs,
+			T_BILLING_TYPE bt
+		WHERE hd.house_id = ob.house_id
+		AND od.owner_id = ob.owner_id
+		AND cs.standard_id = ob.standard_id
+		AND cs.billing_type_id = bt.billing_type_id
+		AND ob. STATUS = 0
+		<![CDATA[AND ob.batch < #{batch}]]>
+		AND hd.building_id = #{building_id}
+		AND hd.house_dong = #{house_dong}
+		ORDER BY
+			hd.house_units,
+			hd.house_floor,
+			hd.house_room,
+			ob.batch
+		LIMIT ${m},${n}
+	</select>
+	
+	<select id="findBillDataByBuildingIdCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			ESTATE_HOUSE_DETAIL hd,
+			T_OWNER_BILL ob,
+			ESTATE_OWNER_DETAIL od
+		WHERE hd.house_id = ob.house_id
+		AND od.owner_id = ob.owner_id
+		AND ob. STATUS = 0
+		<![CDATA[AND ob.batch <= #{batch}]]>
+		AND hd.building_id = #{building_id}
+		AND hd.house_dong = #{house_dong}
+		ORDER BY
+			hd.house_units,
+			hd.house_floor,
+			hd.house_room,
+			ob.batch
+	</select>
+	
+	<select id="findHouseBillDataByBuildingId" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+			h.*, od.*,ob.*,bt.type_name,cs.project_name,ob.money as billmoney,(select code_content from ESTATE_CODE_DETAIL c where c.code_id = cs.denominated_unit) as code_content
+		FROM
+			ESTATE_HOUSE_DETAIL h,
+			T_OWNER_BILL ob,
+			ESTATE_OWNER_DETAIL od,
+			T_CHARGE_STANDARD cs,
+			T_BILLING_TYPE bt
+		WHERE ob.house_id = h.house_id
+		AND ob.owner_id = od.owner_id
+		AND h.building_id = #{building_id}
+		AND ob.status = 0
+		AND h.house_location like concat('%', #{house_location},'%')
+		AND ob.standard_id = cs.standard_id
+		AND cs.billing_type_id = bt.billing_type_id
+		ORDER BY(h.house_units + 0),(h.house_floor + 0),(h.house_room + 0)
+		LIMIT ${m},${n}
+	</select>
+	
+	<select id="findHouseBillDataByBuildingIdCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT
+			count(*)
+		FROM
+			ESTATE_HOUSE_DETAIL h,
+			T_OWNER_BILL ob,
+			ESTATE_OWNER_DETAIL od,
+			T_CHARGE_STANDARD cs,
+			T_BILLING_TYPE bt
+		WHERE ob.house_id = h.house_id
+		AND ob.owner_id = od.owner_id
+		AND h.building_id = #{building_id}
+		AND ob.status = 0
+		AND h.house_location = #{house_location}
+		AND ob.standard_id = cs.standard_id
+		AND cs.billing_type_id = bt.billing_type_id
+		ORDER BY(h.house_units + 0),(h.house_floor + 0),(h.house_room + 0)
+	</select>
+	
+	<select id="findChargeDataByBuildingId" parameterType="java.lang.String" resultType="java.util.Map">
+		select c.* from T_CHARGE_STANDARD c, T_BILLING_TYPE b where c.billing_type_id = b.billing_type_id and b.building_id = #{building_id}
+	</select>
+	
+	<select id="findHouseDataByBuildingIdAndDong" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateHouseDetail">
+		select * from ESTATE_HOUSE_DETAIL h where h.building_id = #{building_id} and h.house_dong in (${house_dong})
+	</select>
+	
+	<!-- 判断房屋是否存在 -->
+	<select id="isExists" parameterType="net.merise.platform.orm.base.EstateHouseDetail" resultType="boolean">
+		select count(h.house_id) from ESTATE_HOUSE_DETAIL h 
+		where h.building_id = #{building_id} and h.house_dong = #{house_dong} 
+		and h.house_units=#{house_units} and h.house_floor=#{house_floor} and h.house_room=#{house_floor}
+	</select>
+</mapper>

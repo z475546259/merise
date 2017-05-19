@@ -1,0 +1,59 @@
+package net.merise.platform.web.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import net.merise.platform.orm.base.EstateInfoDetail;
+import net.merise.platform.service.EstateInfoDetailService;
+import net.merise.platform.utils.Coder;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+@RequestMapping("/estate")
+@Transactional
+public class EstateController {
+
+	@Autowired
+	private EstateInfoDetailService estateService;
+
+	@RequestMapping("/index")
+	public @ResponseBody Map<String, Object> findAllEstate(int page, int rows,String searchValue){
+		searchValue=searchValue==null?"":searchValue;
+		int m = (page - 1) * rows;
+		Map<String, Object> dataMap = new HashMap<String, Object>();
+		dataMap.put("m", m);
+		dataMap.put("n", rows);
+		dataMap.put("estate_name", searchValue);
+		
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("total", estateService.findCount(dataMap));
+		resultMap.put("rows", estateService.findDataByPage(dataMap));
+		
+		return resultMap;
+	}
+	
+	@RequestMapping("/save")
+	@ResponseBody
+	public void save(EstateInfoDetail estate){
+		estate.setEstate_id(Coder.getSerialCode20());
+		estateService.insert(estate);
+	}
+	
+	@RequestMapping("/update")
+	@ResponseBody
+	public void update(EstateInfoDetail estate,String id){
+		estate.setEstate_id(id);
+		estateService.update(estate);
+	}
+	
+	@RequestMapping("/delete")
+	@ResponseBody
+	public void delete(String id){
+		estateService.delete(id);
+	}
+}

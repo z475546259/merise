@@ -1,0 +1,157 @@
+package net.merise.platform.service.impl;
+
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.merise.platform.orm.base.PayCost;
+import net.merise.platform.orm.mapper.BillingTypeDAO;
+import net.merise.platform.orm.mapper.ChargeStandardDAO;
+import net.merise.platform.orm.mapper.EstateHouseDetailDAO;
+import net.merise.platform.orm.mapper.HouseNumberDAO;
+import net.merise.platform.orm.mapper.OwnerBillDAO;
+import net.merise.platform.orm.mapper.OwnerDAO;
+import net.merise.platform.orm.mapper.PayCostDao;
+import net.merise.platform.service.PayCostService;
+import net.merise.platform.utils.Coder;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+public class PayCostServiceImpl implements PayCostService {
+	
+	@Autowired
+	private PayCostDao costDao;
+	
+	@Autowired
+	private BillingTypeDAO billingTypeDAO;
+	
+	@Autowired
+	private ChargeStandardDAO chargeStandardDAO;
+	
+	@Autowired
+	private EstateHouseDetailDAO estateHouseDetailDAO;
+	
+	@Autowired
+	private OwnerDAO ownerDAO;
+	
+	@Autowired
+	private HouseNumberDAO houseNumberDAO;
+	
+	@Autowired
+	private OwnerBillDAO ownerBillDAO;
+	
+	
+	
+	@Override
+	public void insert(PayCost payCost) {
+		costDao.insert(payCost);
+	}
+
+	@Override
+	public Map<String, Object> findPayCostByPage(Map<String, Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", costDao.findCount(params));
+		map.put("rows", costDao.findPayCostByPage(params));
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> findPayCostByPageOfDay(Map<String, Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", costDao.findCountOfDay(params));
+		map.put("rows", costDao.findPayCostByPageOfDay(params));
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> payList(Map<String,Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		List<Map<String, Object>> list = ownerBillDAO.payList(params);
+		if(list.size()>0){
+			double countMoney = 0;
+			for (Map<String, Object> l : list) {
+				countMoney += Double.parseDouble(l.get("money").toString());
+			}
+			Map<String, Object> owner =  ownerDAO.getOwnerDetail1(params);
+			double moneny = 0;
+			if(owner != null){
+				map.put("owner_name", owner.get("owner_name"));//业主姓名
+				moneny = Double.parseDouble(owner.get("money").toString())/100;
+			}
+			map.put("money", moneny);//业主余额
+			map.put("rows", list);//结果集
+			map.put("total", list.size());//结果集
+			map.put("countMoneny", countMoney);//缴费金额
+			map.put("q_money",moneny - countMoney>0?0:moneny-countMoney);//欠费金额
+		}
+		return map;
+	}
+
+	@SuppressWarnings("unused")
+	@Override
+	public String payCost(String house_location, double owe_moneny,
+			double paycost_balance, double now_moneny, double paycost_moneny) {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("house_location", house_location);
+		Map<String, Object> owner =  ownerDAO.getOwnerDetail1(params);
+		DecimalFormat  df   = new DecimalFormat("######0.00");   
+		double money = (paycost_moneny+paycost_balance-now_moneny)>=0?(paycost_moneny+paycost_balance-now_moneny):0;
+		if(params == null){
+			return "请输入正确的房号!";
+		}
+		String owner_id = owner.get("owner_id").toString();
+		PayCost payCost = new PayCost();
+		payCost.setPaycost_id(Coder.getSerialCode20());
+		payCost.setPaycost_way("手工");
+		payCost.setPaycost_moneny(String.valueOf(paycost_moneny));
+		payCost.setPaycost_balance(df.format(money));
+		payCost.setHouse_id(owner.get("house_id").toString());
+		payCost.setPaycost_time(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		payCost.setOwner_id(owner_id);
+		costDao.insert(payCost);
+		
+		//修改用户余额
+		params.put("money", df.format(money*100));
+		params.put("owner_id", owner_id);
+		ownerDAO.updateMoneyById(params);
+		SimpleDateFormat df1 = new SimpleDateFormat("yyyyMM");
+		params.put("batch", df1.format(new Date()));
+		List<Map<String, Object>> list = ownerBillDAO.payList(params);
+		for (Map<String, Object> l : list) {
+			//修改账单状态
+			ownerBillDAO.updateStatus(l.get("bill_id").toString());
+		}
+		return "操作成功!";
+	}
+	
+	@Override
+	public List<Map<String, Object>> findPayCostByHouseAndOwnerId(String owner_id,
+			String house_id) {
+		return costDao.findPayCostByHouseAndOwnerId(owner_id, house_id);
+	}
+
+	@Override
+	public Map<String, Object> findPayCostItemByPage(Map<String, Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", costDao.findPayCostItemCountByPage(params));
+		map.put("rows", costDao.findPayCostItemByPage(params));
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> payCostLackRecord(Map<String, Object> params) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", costDao.payCostCountLackRecord(params));
+		map.put("rows", costDao.payCostLackRecord(params));
+		return map;
+	}
+
+}

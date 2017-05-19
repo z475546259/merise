@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>reportTotal.jsp</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	
+  		<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="统计列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+        	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+    	</div>
+    	
+    	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">票据记录信息</div>
+	            <div style="margin-bottom:10px">
+	                <input name="bill_name" class="easyui-textbox" required="true" label="票据名称:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="bill_number" class="easyui-textbox" required="true" label="数量:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+                	<select name="dept_id"  id="deptAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="选择部门:" ></select>	
+            	</div>
+            	<div style="margin-bottom:10px">
+                	<select name="employees_id"  id="empAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="选择员工:" ></select>
+            	</div>
+            	<div style="margin-bottom:10px">
+	                <input name="bill_starNum" class="easyui-textbox" required="true" label="票据起始编号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="bill_endNum" class="easyui-textbox" required="true" label="票据结束编号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <select name="bill_type"  id="bill_typeAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="记录类型:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="bill_operator" class="easyui-textbox" required="true" label="操作人:" style="width:100%">
+	            </div>
+	        </form>
+    	</div>
+    	<div id="dlg-buttons">
+        	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+        	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+    	</div>
+	</div>
+  
+    <script type="text/javascript">
+    
+  //实例化树菜单  
+	 var building_id = "";
+	 var dong = "";
+	 $(function(){
+		 $("#tree").tree({
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+		    	 dong = node.text;// 栋
+				 if (node.attributes.level == "build") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			pagination: false, //显示分页
+							remoteSort:false,
+							nowrap:false,
+							pagination: true, //显示分页
+							pageSize: 10, //页大小
+							pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+							url:'bill/findDataByPage?building_id='+building_id,
+  		        			columns:[[
+  		        				{field:'bill_name',title:'票据名称',width:80},
+  		        				{field:'bill_type',title:'领用/收回',width:80},
+  		        				{field:'bill_time',title:'时间',width:80},
+  		        				{field:'bill_number',title:'数量',width:80},
+  		        				{field:'employees_name',title:'领取/收回人',width:80},
+  		        				{field:'bill_starNum',title:'票据起始号',width:80},
+  		        				{field:'bill_endNum',title:'票据结束号',width:80},
+  		        				{field:'bill_operator',title:'操作人',width:80}
+  		        			]]
+	        		});
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+	 
+	 $('#bill_typeAllCombobox').combobox({
+			valueField:'lable',
+    		textField:'value',
+    		data:[
+    		    {
+    				lable:"领取",
+    				value:"领取"
+    			},
+    			{
+    				lable:"收回",
+    				value:"收回"
+    			}
+	 		]
+  	});
+	 $('#empAllCombobox').combobox({
+		 valueField:'lable',
+ 		textField:'value',
+ 		data:[
+ 		    {
+ 				lable:"",
+ 				value:""
+ 			}
+	 		]
+  	});
+	 
+	 $(document).on("click", "#new", function(){
+		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新增票据记录");
+         $("#fm").form("clear");
+         
+	     $('#deptAllCombobox').combobox({
+	     		url:'estateCodeEetail/findByCodeNameAndBuildingId?code_name='+'部门'+'&building_id='+building_id,
+	     		valueField:'code_id',
+	     		textField:'code_content',
+	       	onChange: function (n,o) {
+	  			$('#empAllCombobox').combobox({
+	                 	url:'employees/findByDeptId?id='+n,
+	                 	valueField:'employees_id',
+	                 	textField:'employees_name',
+	              });
+	  		}
+	  	});
+	    $('#empAllCombobox').combobox({
+            	valueField:'employees_id',
+            	textField:'employees_name',
+         });
+	 });
+	 
+	 $(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+             url: "bill/save?building_id="+building_id,
+             onSubmit: function(){
+                 return $(this).form("validate");
+             },
+             success: function(result){
+                $("#dlg").dialog("close");
+                $("#dg").datagrid("reload");
+             }
+         });
+		});
+	 
+
+    </script>
+  </body>
+</html>

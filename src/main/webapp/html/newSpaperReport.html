@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>报事报修</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	
+	<!-- 图片展示 -->
+	<link  rel='stylesheet' href="zoom/zoom.css"></link>
+	<script type="text/javascript" src="js/zoomWidget.js"></script>
+
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="报事报修列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-attibutes" plain="true" id="repair">处理</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-archives" plain="true" id="end">归档</a>
+	        <select name="newspaper_type"  id="new_spaperAllCombobox1" data-options="editable:false" style="width:15%;" required="true" label="事件类别:" ></select>
+	        <select name="newspaper_status"  id="new_spaper_statusAllCombobox" data-options="editable:false" style="width:15%;" required="true" label="上报方式:" ></select>	
+	    	<input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入用户姓名或事件主题"   style="width: 220px; vertical-align: middle;"/>
+	    </div>
+	    
+	    <!-- 详情 -->
+    	<div id="dlg" class="easyui-dialog" style="width:600px;height:500px;"  closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">报事报修信息</div>
+	            <div style="margin-bottom:10px">
+	            	<select name="newspaper_type" class="easyui-validatebox"  id="new_spaperAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="事件类别:" disabled="disabled">
+	            		
+	            	</select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<select name="report_type"  id="report_typeAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="上报方式:" disabled="disabled"></select>	
+	            </div>
+	            <div style="margin-bottom:10px">
+                	<input name="newspaper_name" class="easyui-textbox" required="true" label="事件主题:" style="width:100%" disabled="disabled">
+           		</div>
+           		<div style="margin-bottom:10px">
+                	<input name="newspaper_content" class="easyui-textbox" data-options="multiline:true" required="true" label="事件内容:" style="width:100%;height: 100px;" disabled="disabled">
+            	</div>
+            	<div style="margin-bottom:10px">
+                	<input name="newspaper_remark" class="easyui-textbox" required="true" label="接待人:" style="width:100%" disabled="disabled">
+           		</div>
+           		
+           		<!-- 列表显示内容元素  -->
+				<ul class="gallery" style="width: 100%;margin-bottom: 10px;" id="images_mj">
+					
+					<!-- 可以用元素直接放置图片  -->
+					<!-- <li><a href="DSC_0008-660x441.jpg"><img
+							src="DSC_0008-660x441.jpg" /></a></li>
+					<li><a href="DSC_0014-660x441.jpg"><img
+							src="DSC_0014-660x441.jpg" /></a></li>
+					<li><a href="DSC_0019-660x441.jpg"><img
+							src="DSC_0019-660x441.jpg" /></a></li> -->
+				</ul>
+           		
+           		<div style="margin-bottom:20px;margin-top:20px;;font-size:14px;border-bottom:1px solid #ccc">处理经过</div>
+            	<table id="dg1" class="easyui-datagrid" style="min-height: 100vh;"
+	  				pagination="true"
+	  				rownumbers="true" fitColumns="true" singleSelect="true">
+	  				<thead>
+	  					<tr>
+	  						
+	  					</tr>
+	  				</thead>
+	  			</table>
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    
+	    <div id="dlg2" class="easyui-dialog" style="width:600px;height:500px;" closed="true" buttons="#dlg2-buttons">
+        <form id="fm2" method="post" style="margin:0;padding:20px 50px" novalidate>
+            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">处理信息</div>
+            <div style="margin-bottom:10px">
+                <select name="repairs_type" id="repairs_typeAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="执行步骤:"></select>	
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="building_name" id="building_name" required="true" data-options="editable:false" class="easyui-textbox" label="楼盘名称:" style="width:100%;">
+            </div>
+            <div style="margin-bottom:10px;display: none">
+            	<input name="building_id" id="building_id" required="true" data-options="editable:false" class="easyui-textbox" label="楼盘编号:" style="width:100%;">
+            </div>
+            <div style="margin-bottom:10px">
+                <select name="dept_id"  id="deptAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="选择部门:" ></select>	
+            </div>
+            <div style="margin-bottom:10px">
+                <select name="employees_id"  id="empAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="选择员工:" ></select>
+            </div>
+            <div style="margin-bottom:10px">
+           		<select name="satisfaction"  id="satisfactionCombobox" data-options="editable:false" style="width:100%;" required="true" label="满意度:" ></select>
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="repairs_remark" class="easyui-textbox" data-options="multiline:true" required="true" label="备注:" style="width:100%;height: 80px;">
+            </div>
+            
+            
+            <div style="margin-bottom:20px;margin-top:20px;;font-size:14px;border-bottom:1px solid #ccc">处理经过</div>
+            <table id="dg2" class="easyui-datagrid" style="min-height: 100vh;" toolbar="#toolbar1" pagination="true" rownumbers="true" fitColumns="true" singleSelect="true">
+		  		<thead>
+		  			<tr>
+		  				
+		  			</tr>
+		  		</thead>
+		  	</table>
+        </form>
+    </div>
+    <div id="dlg2-buttons">
+    	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg2').dialog('close')" style="width:90px">取消</a>
+    </div>
+	  	
+	  	
+	  	<div id="dlg3" class="easyui-dialog" style="width:600px" closed="true">
+        	<form id="fm3" method="post" style="margin:0;padding:20px 50px" novalidate>
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">图片信息</div>
+	            	<!-- 列表显示内容元素  -->
+					<ul class="gallery" style="width: 100%;margin-bottom: 10px;" id="images_mj1">
+						
+						<!-- 可以用元素直接放置图片  -->
+						<!-- <li><a href="DSC_0008-660x441.jpg"><img
+								src="DSC_0008-660x441.jpg" /></a></li>
+						<li><a href="DSC_0014-660x441.jpg"><img
+								src="DSC_0014-660x441.jpg" /></a></li>
+						<li><a href="DSC_0019-660x441.jpg"><img
+								src="DSC_0019-660x441.jpg" /></a></li> -->
+					</ul>
+       		</form>
+    	</div>
+    
+    
+	</div>
+	
+	<!-- 单价放大展示内容元素 -->
+	<div id="cldbZoom" class="zoom_vessel">
+		<a class="close"></a>
+		<a href="#previous" class="previous"></a>
+		<a href="#next" class="next"></a>
+		<div class="content loading"></div>
+	</div>
+	<!-- 单价放大展示内容元素 -->
+	<div id="cldbZoom1" class="zoom_vessel">
+		<a class="close"></a>
+		<a href="#previous" class="previous"></a>
+		<a href="#next" class="next"></a>
+		<div class="content loading"></div>
+	</div>
+  	
+    <script type="text/javascript">
+    
+    var building_id;
+    var dong;
+    var newspaper_type;
+    var newspaper_status;
+    var father;
+    
+    
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'messageGroup/tree',//请求路径，id为根节点的id  
+		     formatter:function(node){
+				 var s = node.text;
+				 if (s.indexOf("栋") == -1) {
+					 if (s.indexOf("车库") == -1) {
+					 	s = s.replace("-","栋-");
+					 }
+				 }
+				 return s;
+			 },
+		     onClick: function(node){
+		    	 if (node.attributes.level == "estate") {
+		    		 $("#contextBox").hide();
+		    		 return false;
+		    	 }
+		    	 father = $(this).tree("getParent",node.target).text;
+		    	 building_id = node.id;//楼盘id
+	    	 	 dong = node.attributes.house_dong;// 栋
+	    	 	 newspaper_type = $("#new_spaperAllCombobox1").combobox("getValue");
+	    	 	 newspaper_status = $("#new_spaper_statusAllCombobox").combobox("getValue");
+				 if (node.attributes.level == "house") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'newsPaperReport/index?building_id='+building_id+'&house_dong='+dong+'&newspaper_type='+newspaper_type+'&newspaper_status='+newspaper_status,
+	        			columns:[[
+	        				{field:'newspaper_id',title:'事件编号',width:80,align:'center'},
+	        				{field:'house_units',title:'单元号',width:80,align:'center'},
+	        				{field:'house_floor',title:'楼层号',width:80,align:'center'},
+	        				{field:'house_room',title:'门牌号',width:80,align:'center'},
+	        				{field:'owner_name',title:'用户姓名',width:80,align:'center'},
+	        				{field:'owner_mobile',title:'手机号',width:80,align:'center'},
+	        				{field:'newspaper_type',title:'事件类型',width:80,align:'center'},
+	        				{field:'newspaper_name',title:'事件主题',width:80,align:'center'},
+	        				{field:'report_type',title:'上报方式',width:80,align:'center'},
+	        				{field:'newspaper_time',title:'上报时间',width:80,align:'center'},
+	        				{field:'newspaper_status',title:'处理状态',width:80,align:'center'},
+	        				{field:'newspaper_remark',title:'接待人',width:80,align:'center'},
+	        				{field:'newspaper_content',title:'内容',width:80,align:'center'},
+	        			]]
+	        			
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'newspaper_content');
+		    		$("#dg").datagrid('hideColumn', 'newspaper_id');
+		         } else if (node.attributes.level == "build") {
+		        	 $("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+						$("#contextBox").show();
+			    		 //根据左边栋跟楼盘查询所有业主
+			    		 $("#dg").datagrid({
+		        			remoteSort:false,
+		        			nowrap:false,
+		        			pagination: true, //显示分页
+		                    pageSize: 10, //页大小
+		                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+		        			url:'newsPaperReport/index?building_id='+building_id+'&house_dong=&newspaper_type='+newspaper_type+'&newspaper_status='+newspaper_status,
+		        			columns:[[
+		        				{field:'newspaper_id',title:'事件编号',width:80,align:'center'},
+		        				{field:'house_units',title:'单元号',width:80,align:'center'},
+		        				{field:'house_floor',title:'楼层号',width:80,align:'center'},
+		        				{field:'house_room',title:'门牌号',width:80,align:'center'},
+		        				{field:'owner_name',title:'用户姓名',width:80,align:'center'},
+		        				{field:'owner_mobile',title:'手机号',width:80,align:'center'},
+		        				{field:'newspaper_type',title:'事件类型',width:80,align:'center'},
+		        				{field:'newspaper_name',title:'事件主题',width:80,align:'center'},
+		        				{field:'report_type',title:'上报方式',width:80,align:'center'},
+		        				{field:'newspaper_time',title:'上报时间',width:80,align:'center'},
+		        				{field:'newspaper_status',title:'处理状态',width:80,align:'center'},
+		        				{field:'newspaper_remark',title:'接待人',width:80,align:'center'},
+		        				{field:'newspaper_content',title:'内容',width:80,align:'center'},
+		        			]]
+		        			
+		        		});
+			    		$("#dg").datagrid('hideColumn', 'newspaper_content');
+			    		$("#dg").datagrid('hideColumn', 'newspaper_id');
+		         } else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+
+    
+    function doSearch(value){ //点击搜素,触发此函数
+    	newspaper_type = $("#new_spaperAllCombobox1").combobox("getValue");
+  	 	newspaper_status = $("#new_spaper_statusAllCombobox").combobox("getValue");
+        $("#dg").datagrid({ 
+        	url:'newsPaperReport/index?searchValue='+value+'&building_id='+building_id+'&house_dong='+dong+'&newspaper_type='+newspaper_type+'&newspaper_status='+newspaper_status,
+        });
+    }  
+    
+    function loadRepairs(id,report_id){
+    	$("#"+id).datagrid({
+    		remoteSort:false,
+    		nowrap:false,
+    		pagination: true, //显示分页
+            pageSize: 5, //页大小
+            pageList: [5, 10, 15, 20, 25], //页大小下拉选项此项各value是pageSize的倍数
+    		url:'newsPaperReport/findRepairByReportId?report_id='+report_id,
+    		columns:[[
+				{field:'repairs_id',title:'处理编号',width:80,align:'center'},
+    			{field:'repairs_time',title:'处理时间',width:80,align:'center'},
+    			{field:'repairs_type',title:'执行步骤',width:80,align:'center'},
+    			{field:'employees_name',title:'处理人',width:80,align:'center'},
+    			{field:'repairs_remark',title:'备注',width:80,align:'center'},
+    			{field:'opt',title:'操作',width:80,align:'center',
+		            formatter:function(value,rec){  
+		            	var btn = "<a class='editcls' onclick='findImg()' href='javascript:void(0)'>查看图片</a>";  
+		                return btn;  
+		            }  
+		        }
+    		]]
+    	});
+    	//$("#"+id).datagrid('hideColumn', 'repairs_id');
+    }
+    
+		//详情
+		$(document).on("click", "#detail", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#fm").form("clear");
+                $("#fm").form("load",row);
+                loadRepairs("dg1",row.newspaper_id);
+                $("#images_mj").html("");
+                
+                $.ajax({
+      	             type: "POST",
+      	             url: 'appointService/findImageByOwnerId',
+      	             data: {image_owner_id:row.newspaper_id,image_owner_table:'t_newspaper_report'},
+      	             dataType: "json",
+      	             success: function(data){
+      	            	var da=data;
+      	            	if(da.length > 0){
+          	            	var imageZoom=$("#images_mj").zoom({
+                				contentId:"cldbZoom",
+                				rootPath:""});
+          	            	 
+          	            	 var images = [];
+          	            	 for(var i=0;i<da.length;i++){
+          	            		images.push(''+da[i].image_url);
+          	            	 }
+          	            	//可以调用appendImageElement方法动态传递元素url,可传递数组或字符串,字符串默认分隔符为,  如需自定义分隔符在第二个参数使用appendImageElement(images,'|')
+                 			//var images="DSC_0008-660x441.jpg,DSC_0008-660x441.jpg,DSC_0008-660x441.jpg,DSC_0008-660x441.jpg";
+                 			imageZoom.appendImageElement(images);
+          	             }else{
+          	            	$("#images_mj").html("暂无图片信息");
+          	             }
+      	            }
+      	       	});
+             $("#dlg").dialog("open").dialog("center").dialog("setTitle","事件详情");
+            }
+    	});
+		
+		//处理
+		var row;
+		$(document).on("click", "#repair", function(){
+			row = $("#dg").datagrid("getSelected");
+            if (row){
+                if(row.newspaper_status != "已归档"){
+                	$("#dlg2").dialog("open").dialog("center").dialog("setTitle","处理信息");
+                    $("#fm2").form("clear");
+                    
+                    if(row.newspaper_status == "未处理"){
+                    	$('#repairs_typeAllCombobox').combobox({
+                       		valueField:'lable',
+                       		textField:'value',
+                       		data:[
+                				{
+                					lable:"派工",
+                					value:"派工",
+                				}
+                       		   ]
+                       	});
+                    	$("#satisfactionCombobox").combobox("disable");
+                   // }else if(row.newspaper_status == "已处理"){
+                    }else{
+                    	$('#repairs_typeAllCombobox').combobox({
+                       		valueField:'lable',
+                       		textField:'value',
+                       		data:[
+                       		    {
+                       				lable:"协调派工",
+                       				value:"协调派工"
+                       			},
+                       			{
+                       				lable:"回访",
+                       				value:"回访"
+                       			},
+                       			{
+                       				lable:"外委派工",
+                       				value:"外委派工"
+                       			}
+                       		   ],
+                       		onChange: function (n,o) {
+                       			if(n == "回访"){
+                       				$("#satisfactionCombobox").combobox("enable");
+                       			}else{
+                       				$("#satisfactionCombobox").combobox("disable");
+                       			}
+                       		}
+                       	});
+                    }
+                    
+                    $('#building_id').textbox('setValue',building_id);
+                	$('#building_name').textbox('setValue',father);
+                	
+                	$('#deptAllCombobox').combobox({
+                   		url:'estateCodeEetail/findByCodeNameAndBuildingId?code_name='+'部门'+'&building_id='+building_id,
+                   		valueField:'code_id',
+                   		textField:'code_content',
+                     	onChange: function (n,o) {
+                			$('#empAllCombobox').combobox({
+                               	url:'employees/findByDeptId?id='+n,
+                               	valueField:'employees_id',
+                               	textField:'employees_name',
+                            });
+                		}
+                	});
+                	
+                    loadRepairs("dg2",row.newspaper_id);
+                }else{
+                	$.messager.alert("提示", "该事件已归档");
+                }
+            }
+    	});
+
+		
+    	
+    	$('#new_spaperAllCombobox').combobox({
+       		valueField:'lable',
+       		textField:'value',
+       		data:[
+       		    {
+       				lable:"报事",
+       				value:"报事"
+       			},
+       			{
+       				lable:"报修",
+       				value:"报修"
+       			},
+       			{
+       				lable:"其他",
+       				value:"其他"
+       			}
+       		   ]
+       	});
+    	
+    	$('#new_spaperAllCombobox1').combobox({
+       		valueField:'lable',
+       		textField:'value',
+       		data:[
+				{
+					lable:"全部",
+					value:"全部",
+					selected:true
+				},
+       		    {
+       				lable:"报事",
+       				value:"报事"
+       			},
+       			{
+       				lable:"报修",
+       				value:"报修"
+       			},
+       			{
+       				lable:"其他",
+       				value:"其他"
+       			}
+       		   ]
+       	});
+    	
+    	$('#report_typeAllCombobox').combobox({
+       		valueField:'lable',
+       		textField:'value',
+       		data:[
+       		    {
+       				lable:"电话",
+       				value:"电话"
+       			},
+       			{
+       				lable:"来访",
+       				value:"来访"
+       			},
+       			{
+       				lable:"app",
+       				value:"app"
+       			},
+       			{
+       				lable:"其他",
+       				value:"其他"
+       			}
+       		   ]
+       	});
+    	
+    	$('#new_spaper_statusAllCombobox').combobox({
+       		valueField:'lable',
+       		textField:'value',
+       		data:[
+				{
+					lable:"全部",
+					value:"全部",
+					selected:true
+				},
+       		    {
+       				lable:"未处理",
+       				value:"未处理"
+       			},
+       			{
+       				lable:"派工",
+       				value:"派工"
+       			},
+       			{
+       				lable:"协调派工",
+       				value:"协调派工"
+       			},
+       			{
+       				lable:"回访",
+       				value:"回访"
+       			},
+       			{
+       				lable:"外委派工",
+       				value:"外委派工"
+       			},
+       			{
+       				lable:"已归档",
+       				value:"已归档"
+       			}
+       		   ]
+       	});
+    	
+    	$('#satisfactionCombobox').combobox({
+	       		valueField:'lable',
+	       		textField:'value',
+	       		data:[
+					{
+						lable:"满意",
+						value:"满意",
+					},
+	       		    {
+	       				lable:"不满意",
+	       				value:"不满意"
+	       			}
+	       		   ]
+	       	});
+    	
+    	$('#empAllCombobox').combobox({
+           	valueField:'lable',
+           	textField:'value',
+           	data:[
+      			{
+      				lable:"",
+      				value:"",
+      			}
+             	]
+        });
+    	
+    	$(document).on("click", "#save", function(){
+			$("#fm2").form("submit",{
+				url:'newsPaperReport/saveRepairs?newspaper_id='+row.newspaper_id,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#fm2").form("clear");
+                   $('#building_id').textbox('setValue',building_id);
+               	   $('#building_name').textbox('setValue',father);
+                   $("#dg2").datagrid("reload");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+    	
+    	$(document).on("click", "#end", function(){
+    		var row = $("#dg").datagrid("getSelected");
+    		if(row){
+    			/* if(row.newspaper_status == "已归档"){
+    				$.messager.alert("提示", "该事件已归档!");
+        		}else if(row.newspaper_status == "未处理"){
+        			$.messager.alert("提示", "该事件尚未处理!");
+        		}else{
+        			$.messager.confirm("提示", "归档后无法再进行处理!确定要归档该事件吗?", function (r) {
+                        if (r) {
+                            $.post("newsPaperReport/endReport",{report_id:row.newspaper_id},function(result, status){
+                            },"json");
+                            $("#dg").datagrid("reload");
+                        }
+                    });
+        		} */
+        		if(row.newspaper_status == "已归档"){
+        			$.messager.alert("提示", "该事件已归档!");
+        		} else if (row.newspaper_status == "未处理") {
+        			$.messager.alert("提示", "未处理的事件无法归档!");
+        		} else {
+        			$.messager.confirm("提示", "归档后无法再进行处理!确定要归档该事件吗?", function (r) {
+                        if (r) {
+                            $.post("newsPaperReport/endReport",{report_id:row.newspaper_id},function(result, status){
+                            },"json");
+                            $("#dg").datagrid("reload");
+                        }
+                    });
+        		}
+    		}
+    		$("#dg").datagrid("reload");
+        });
+
+    	function findImg(){
+    		var id;
+    		var row = $("#dg1").datagrid("getSelected");
+    		if(row){
+    			id = row.repairs_id;
+    		}else{
+    			row = $("#dg2").datagrid("getSelected");
+    			id = row.repairs_id;
+    		}
+    		$("#images_mj1").html("");
+    		$.ajax({
+    	    	type: "POST",
+    	        url: 'appointService/findImageByOwnerId',
+    	        data: {image_owner_id:id,image_owner_table:'t_newspaper_repairs'},
+    	        dataType: "json",
+    	        success: function(data){
+    	            var da=data;
+    	            if(da.length > 0){
+        	            var imageZoom1=$("#images_mj1").zoom({
+              			contentId:"cldbZoom1",
+              			rootPath:""});
+        	            	 
+        	            var images = [];
+        	            for(var i=0;i<da.length;i++){
+        	            	images.push(da[i].image_url);
+        	            }
+        	            //可以调用appendImageElement方法动态传递元素url,可传递数组或字符串,字符串默认分隔符为,  如需自定义分隔符在第二个参数使用appendImageElement(images,'|')
+               			//var images="DSC_0008-660x441.jpg,DSC_0008-660x441.jpg,DSC_0008-660x441.jpg,DSC_0008-660x441.jpg";
+               		imageZoom1.appendImageElement(images);
+        	        }else{
+        	            	$("#images_mj1").html("暂无图片信息");
+        	        }
+    	        }
+    	    });
+    			
+    			$("#dlg3").dialog("open").dialog("center").dialog("setTitle","图片展示");
+    	}
+
+    </script>
+  </body>
+</html>

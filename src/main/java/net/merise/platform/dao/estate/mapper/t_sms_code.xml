@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.ISmsCodeDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.TSmsCode">insert into T_SMS_CODE (sms_code_id,sms_code_mobile,sms_code_content,sms_code_time) values(#{sms_code_id},#{sms_code_mobile},#{sms_code_content},#{sms_code_time})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.TSmsCode">update T_SMS_CODE set sms_code_mobile = #{sms_code_mobile},sms_code_content = #{sms_code_content},sms_code_time = #{sms_code_time} where sms_code_id = #{sms_code_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_SMS_CODE where sms_code_id = #{sms_code_id}</delete>
+    <delete id="deleteByMobile" parameterType="java.lang.String">delete from T_SMS_CODE where sms_code_mobile = #{sms_code_mobile}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TSmsCode">select * from T_SMS_CODE where sms_code_id = #{sms_code_id}</select>
+    <select id="findDataByMobile" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TSmsCode">select * from T_SMS_CODE where sms_code_mobile = #{sms_code_mobile}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.TSmsCode" parameterType="java.util.Map">select * from T_SMS_CODE where sms_code_mobile like concat('%', #{sms_code_mobile},'%') order by sms_code_time desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from T_SMS_CODE where sms_code_mobile like concat('%', #{sms_code_mobile},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.TSmsCode">select * from T_SMS_CODE where sms_code_mobile like concat('%', #{sms_code_mobile},'%') order by sms_code_time desc limit ${m}, ${n}</select>
+</mapper>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>收费标准</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<link  rel='stylesheet' type='text/css' href="zoom/zoom.css"></link>
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	
+	<style type="text/css">
+	</style>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	<div id="contextBox" style="float: right; display: none;">
+	  	<table id="dg" title="收费标准信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				
+	  			</tr>
+	  		</thead>
+	  	</table>
+	 
+	 
+	  	<div id="toolbar">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+	        <input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入服务项目名称"   style="width: 150px; vertical-align: middle;"/>
+	    </div>
+	  	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	         	<div style="margin-bottom:10px;">
+	            	<select name="billing_type_id"  id="billingAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="计费类别:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="project_name" class="easyui-textbox" required="true" label="项目名称:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<select name="denominated_unit"  id="unitAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="收费公式:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="standard_price" class="easyui-textbox" required="true" label="标准单价:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="coefficient" class="easyui-textbox" required="true" label="系数:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<select name="charge_unit"  id="chargeAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="收费期限单位:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="charge_num" class="easyui-textbox" required="true" label="收费期限数量:" style="width:100%">
+	            </div>
+	            <!-- 
+	            <div style="margin-bottom:10px">
+	                <select name="house_dong"  id="dongAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="栋:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <select name="house_units"  id="unitsAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="单元:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <select name="start_floor"  id="starFloorAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="起始楼层:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <select name="end_floor"  id="endFloorAllCombobox" data-options="editable:false" style="width:100%;" required="true" label="结束楼层:" ></select>
+	            </div>
+	             -->
+	            <div style="margin-bottom:10px">
+	            	<input name="premium" class="easyui-textbox" required="true" label="每层加价量:" style="width:100%">
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    
+	    <!-- 详情 -->
+	    <div id="dlg1" class="easyui-dialog" style="width:600px" closed="true" buttons="#dlg1-buttons">
+	        <form id="fm1" method="post" novalidate style="margin:0;padding:20px 50px" >
+	        	<div style="margin-bottom:10px;display: none;">
+	                <input name="standard_id" class="easyui-textbox" required="true" label="编号:" style="width:100%">
+	            </div>
+	         	<div style="margin-bottom:10px">
+	            	<select name="billing_type_id"  id="billingAllCombobox1" data-options="editable:false" style="width:100%;" required="true" label="计费类别:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="project_name" class="easyui-textbox" required="true" label="项目名称:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<select name="denominated_unit"  id="unitAllCombobox1" data-options="editable:false" style="width:100%;" required="true" label="收费单位:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="standard_price" class="easyui-textbox" required="true" label="标准单价:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="coefficient" class="easyui-textbox" required="true" label="系数:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<select name="charge_unit"  id="chargeAllCombobox1" data-options="editable:false" style="width:100%;" required="true" label="收费期限单位:" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="charge_num" class="easyui-textbox" required="true" label="收费期限数量:" style="width:100%">
+	            </div>
+	            <!-- 
+	            <div style="margin-bottom:10px">
+	            	<input name="house_dong" class="easyui-textbox" required="true" label="栋:" style="width:100%" readonly="readonly">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="house_units" class="easyui-textbox" required="true" label="单元:" style="width:100%" readonly="readonly">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="start_floor" class="easyui-textbox" required="true" label="起始楼层:" style="width:100%" readonly="readonly">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input name="end_floor" class="easyui-textbox" required="true" label="结束楼层:" style="width:100%" readonly="readonly">
+	            </div>
+	             -->
+	            <div style="margin-bottom:10px">
+	            	<input name="premium" class="easyui-textbox" required="true" label="每层加价量:" style="width:100%">
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg1-buttons">
+	    	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveUpdate" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg1').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    
+	 </div>
+    <script type="text/javascript">
+    function doSearch(value){ //点击搜素,触发此函数
+        $("#dg").datagrid({ 
+            url:'chargeStandard/findDataByPage?billing_type_id='+billing_type_id+'&billing_type_name='+billing_type_text+'&searchValue='+value, //触发此action,带上参数searcValue  
+        });
+    }  
+    
+   //实例化树菜单  
+	var building_id = "";
+	var billing_type_text = "";
+	var billing_type_id = "";
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'chargeStandard/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.building_id;//楼盘id
+		    	 billing_type_id =node.id;
+		    	 billing_type_text = node.text;// 栋
+				 if (node.attributes.level == "jflb") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+					$("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'chargeStandard/findDataByPage?billing_type_id='+billing_type_id+'&billing_type_name'+billing_type_text,
+	        			columns:[[
+	        				{field:'standard_id',title:'收费标准编号',width:100,align:'center'},
+	        				{field:'billing_type_id',title:'收费标准类型编号',width:100,align:'center'},
+	        				{field:'project_name',title:'项目名称',width:100,align:'center'},
+	        				{field:'denominated_unit_text',title:'收费公式',width:160,align:'center'},
+	        				{field:'standard_price',title:'单价',width:80,align:'center'},
+	        				{field:'coefficient',title:'系数',width:80,align:'center'},
+	        				{field:'charge_unit',title:'收费期限单位',width:80,align:'center'},
+	        				{field:'charge_num',title:'收费期限数量',width:80,align:'center'},
+	        				{field:'house_dong',title:'栋',width:80,align:'center'},
+	        				{field:'house_units',title:'单元',width:80,align:'center'},
+	        				{field:'start_floor',title:'起始楼层',width:80,align:'center'},
+	        				{field:'end_floor',title:'结束楼层',width:80,align:'center'},
+	        				{field:'premium',title:'每层加价量',width:80,align:'center'},
+	        				{field:'status',title:'状态',width:80,align:'center'},
+	        				{field:'remark',title:'备注',width:80,align:'center'},
+	        				{field:'create_time',title:'创建时间',width:110,align:'center'}
+	        			]]
+	        		});
+					$("#dg").datagrid('hideColumn', 'standard_id');
+					$("#dg").datagrid('hideColumn', 'billing_type_id');
+					$("#dg").datagrid('hideColumn', 'status');
+					$("#dg").datagrid('hideColumn', 'remark');
+					$("#dg").datagrid('hideColumn', 'house_dong');
+					$("#dg").datagrid('hideColumn', 'house_units');
+					$("#dg").datagrid('hideColumn', 'start_floor');
+					$("#dg").datagrid('hideColumn', 'end_floor');
+		         }else {
+					$("#contextBox").hide();
+				 }
+		    	 
+				 $('#billingAllCombobox').combobox({
+				   		valueField:'value',
+				   		textField:'lable',
+				   		data:[
+							{
+								lable:billing_type_text,
+								value:billing_type_id
+							}
+				       	]
+				 });
+				 
+				 $('#billingAllCombobox1').combobox({
+				   		valueField:'value',
+				   		textField:'lable',
+				   		data:[
+							{
+								lable:billing_type_text,
+								value:billing_type_id,
+							}
+				       	]
+				 });
+				 
+				 $('#unitAllCombobox').combobox({
+		    	   		url:'estateCodeEetail/findByCodeNameAndBuildingId?code_name='+'收费公式'+'&building_id='+building_id,
+		    	   		valueField:'code_id',
+		    	   		textField:'code_content'
+		    	   	});
+				 $('#unitAllCombobox1').combobox({
+		    	   		url:'estateCodeEetail/findByCodeNameAndBuildingId?code_name='+'收费公式'+'&building_id='+building_id,
+		    	   		valueField:'code_id',
+		    	   		textField:'code_content'
+		    	   	});
+		    		
+		    		var dong = "";
+		    		var units = "";
+		    		$('#dongAllCombobox').combobox({
+		    	   		url:'estateHouse/findDong?building_id='+building_id,
+		    	   		valueField:'key',
+		    	   		textField:'value',
+		    	   		onChange: function (n,o) {
+		    	   			dong = n;
+		    	  			$('#unitsAllCombobox').combobox({
+		    	                 	url:'estateHouse/findUnits?building_id='+building_id+'&dong='+dong,
+		    	                 	valueField:'lable',
+		    	                 	textField:'lables',
+		    	                 	onChange: function (n,o) {
+		    	                 		units = n;
+		    	        	  			$('#starFloorAllCombobox').combobox({
+		    	        	                 	url:'estateHouse/findFloor?building_id='+building_id+'&dong='+dong+'&units='+units,
+		    	        	                 	valueField:'lable',
+		    	        	                 	textField:'lables',
+		    	        	                 	onChange: function (n,o) {
+		    	        	                 		$('#endFloorAllCombobox').combobox({
+		    	    	        	                 	url:'estateHouse/findFloor?building_id='+building_id+'&dong='+dong+'&units='+units+'&starFloor='+n,
+		    	    	        	                 	valueField:'lable',
+		    	    	        	                 	textField:'lables',
+		    	    	        	              });
+		    	        	        	  		}
+		    	        	              });
+		    	        	  		}
+		    	              });
+		    	  		}
+		    	   	});
+	    	 }
+		 }); 
+		 
+	 });
+	 
+	 $('#unitsAllCombobox').combobox({
+      	valueField:'lable',
+      	textField:'value',
+      	data:[
+				{
+					lable:"",
+					value:"",
+				}
+     		   ]
+   	});
+	 $('#unitsAllCombobox1').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"",
+						value:"",
+					}
+	     		   ]
+	   	});
+	 $('#starFloorAllCombobox').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"",
+						value:"",
+					}
+	     		   ]
+	   	});
+	 $('#starFloorAllCombobox1').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"",
+						value:"",
+					}
+	     		   ]
+	   	});
+	 $('#endFloorAllCombobox').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"",
+						value:"",
+					}
+	     		   ]
+	   	});
+	 $('#endFloorAllCombobox1').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"",
+						value:"",
+					}
+	     		   ]
+	   	});
+	 $('#chargeAllCombobox').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"月",
+						value:"月",
+					}
+	     		   ]
+	   	});
+	 $('#chargeAllCombobox1').combobox({
+	      	valueField:'lable',
+	      	textField:'value',
+	      	data:[
+					{
+						lable:"月",
+						value:"月",
+					}
+	     		   ]
+	   	});
+	 
+    	$(document).on("click", "#new", function(){
+    		$("#dlg").dialog("open").dialog("center").dialog("setTitle","新增收费标准信息");
+            $("#fm").form("clear");
+            var data = $('#billingAllCombobox').combobox('getData');
+            $("#billingAllCombobox").combobox('select',data[0].value);
+            
+            var chargeData = $("#chargeAllCombobox").combobox("getData");
+            $("#chargeAllCombobox").combobox("select",chargeData[0].lable);
+    	});
+		$(document).on("click", "#edit", function(){
+			$("#fm1").form("clear");
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+            	$("#fm1").form("load",row);
+            	$("#dlg1").dialog("open").dialog("center").dialog("setTitle","修改收费标准信息");
+            }
+    	});
+		
+		$(document).on("click", "#saveUpdate", function(){
+			$("#fm1").form("submit",{
+                url: 'chargeStandard/update?building_id='+building_id,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                	var resultdata = JSON.parse(result);
+                	if(resultdata == "true"){
+                		$("#dlg1").dialog("close");
+                        $("#dg").datagrid("reload");
+                	}else{
+                		 $.messager.alert("提示","修改失败,该收费名称已存在!");
+                	}
+                   
+                }
+            });
+    	});
+		
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("Confirm","是否确认删除该收费标准?",function(r){
+                    if (r){
+                        $.post("chargeStandard/delete",{id:row.standard_id},function(result, status){
+                        	$("#dg").datagrid("reload");
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: 'chargeStandard/save?building_id='+building_id,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                	var resultdata = JSON.parse(result);
+                	console.log(resultdata);
+                	if(resultdata == "true"){
+                		$("#dlg").dialog("close");
+                        $("#dg").datagrid("reload");
+                	}else{
+                		 $.messager.alert("提示","添加失败,该收费名称已存在!");
+                	}
+                   
+                }
+            });
+		});
+    </script>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>缴费</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+	<div id="contextBox">
+		<div id="treeBox" style="float: left;width: auto; margin-right: 10px;">
+	  		<ul id="tree"></ul>
+	  	</div>
+		<table cellpadding="5">
+    		<tr style="font-size: 12px;">
+    			<td >房屋号:</td>
+    			<td><input class="easyui-textbox" type="text" name="house_location" style="width: 120px;" id="house_location"/></td>
+    			<td>业主名称:</td>
+    			<td><input class="easyui-textbox" type="text" name="owner_name" disabled="disabled" style="width: 80px;" id="owner_name"/></td>
+    			<td>用户余额:</td>
+    			<td><input class="easyui-textbox" type="text" name="paycost_balance" disabled="disabled" style="width: 80px;" id="paycost_balance"/></td>
+    			<td>应收金额:</td>
+    			<td><input class="easyui-textbox" type="text" name="now_moneny"  disabled="disabled" style="width: 80px;" id="now_moneny"/></td>
+    			<td>欠费金额:</td>
+    			<td><input class="easyui-textbox" type="text" name=owe_moneny disabled="disabled" style="width: 80px;" id="owe_moneny"/></td>
+    			<td>收款金额:</td>
+    			<td><input class="easyui-textbox" type="text" name="paycost_moneny"  style="width: 80px;" id="paycost_moneny"/></td>
+    		</tr>
+    	</table>
+    	<div>
+    		<table id="dg" title="缴费列表" class="easyui-datagrid" style="min-height: 100vh;" toolbar="#toolbar" pagination="true" rownumbers="true" fitColumns="true" singleSelect="true">
+		  		<thead>
+		  			<tr>
+		  				<th field="house_id" width="100%" align="center">请输入房屋编号</th>
+		  			</tr>
+		  		</thead>
+		  	</table>
+		  	<div style="margin: 0;padding: 0;">
+		  		<h4>合计:<span id="m"></span></h4>
+		  	</div>
+		  	<div style="text-align: center;">
+		  		<input type="button" value="收款" onclick="sk();">
+		  		<input type="button" value="取消">
+		  	</div>
+    	</div>
+	</div>
+  </body>
+  <script type="text/javascript">
+  	var dg =  $("#dg");
+  	var building_id = '';
+  	var dong = '';
+  	$(function(){
+  		$("#tree").tree({  
+			 url : "messageGroup/tree",
+			 onClick:function(node){
+				 building_id = node.id;//楼盘id
+		    	 dong = node.attributes.house_dong;
+			 }
+		 });
+  		
+  		dg.datagrid({
+	 			remoteSort:false,
+	 			nowrap:false,
+	 			pagination: false, //显示分页
+	            pageSize: 10, //页大小
+	            pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	 			url:null,
+	 			columns:[[
+	 				{field:'house_id',title:'房屋编号',width:80},
+	 				{field:'building_name',title:'楼盘名称',width:80},
+	 				{field:'house_dong',title:'栋',width:80},
+	 				{field:'house_units',title:'单元',width:50},
+	 				{field:'house_floor',title:'层',width:80},
+	 				{field:'house_room',title:'房号',width:80},
+	 				{field:'house_location',title:'房屋号',width:80},
+	 				{field:'owner_name',title:'业主名称',width:80},
+	 				{field:'project_name',title:'缴费项目',width:80},
+	 				{field:'money',title:'缴费金额',width:80},
+	 			]],
+	 		});
+  			dg.datagrid('hideColumn', 'house_id');
+  		
+  		//输入房屋号回车事件
+  		$("input",$("#house_location").next("span").keydown(function(e){
+  			if(e.keyCode==13){
+  				if(dong==""){
+  					alert("请选择左边的楼盘!")
+  				}else{
+  					var house_location = $("#house_location").textbox("getValue");
+  					dg.datagrid({
+  						url:'payCost/payList?house_location='+house_location+'&building_id='+building_id+'&dong='+dong,
+  						onLoadSuccess:function(data){
+  							console.log(JSON.stringify(data));
+							if(data != null){
+								$("#owner_name").textbox("setValue",data.rows[0].owner_name);
+								$("#owe_moneny").textbox("setValue",data.q_money);
+								$("#paycost_balance").textbox("setValue",data.money);
+								$("#now_moneny").textbox("setValue",data.countMoneny);
+								$("#m").html(data.countMoneny);
+							}else{
+								$("#owner_name").textbox("setValue","");
+								$("#owe_moneny").textbox("setValue","");
+								$("#paycost_balance").textbox("setValue","");
+								$("#now_moneny").textbox("setValue","");
+								$("#m").html("");
+								dg.datagrid("reload");
+							}
+  						}});
+  				}
+  			}
+  		}))
+  	})
+  	
+  	function sk(){
+  		var house_location = $("#house_location").textbox("getValue");
+  		var owe_moneny = $("#owe_moneny").textbox("getValue");
+  		var paycost_balance = $("#paycost_balance").textbox("getValue");
+  		var now_moneny = $("#now_moneny").textbox("getValue");
+  		var paycost_moneny = $("#paycost_moneny").textbox("getValue");
+  		
+  		$.ajax({
+  			url:'payCost/payCost',
+  			type:'post',
+  			data:{"building_id":building_id,"dong":dong,"house_location":house_location,"owe_moneny":owe_moneny,"paycost_balance":paycost_balance,"now_moneny":now_moneny,"paycost_moneny":paycost_moneny},
+  			success:function(d){
+  				$.messager.alert("提示", d, "info",function(){
+  					window.location.reload();
+  				});
+  			}
+  		})
+  	}
+  	
+  </script>
+</html>

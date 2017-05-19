@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.OwnerBillDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.OwnerBill">insert into T_OWNER_BILL (bill_id,house_id,owner_id,standard_id,standard_name,batch,money,status,pay_date,house_number_id,expire_date) values(#{bill_id},#{house_id},#{owner_id},#{standard_id},#{standard_name},#{batch},#{money},#{status},#{pay_date},#{house_number_id},#{expire_date})</insert>
+    <delete id="delete" parameterType="java.lang.String">delete from T_OWNER_BILL where bill_id = #{bill_id}</delete>
+    <delete id="deleteByHouseAndOwnerId" parameterType="java.lang.String">delete from T_OWNER_BILL where house_id = #{house_id} and owner_id = #{owner_id}</delete>
+    <delete id="deleteByBatch" parameterType="java.util.Map">delete from T_OWNER_BILL where house_id = #{house_id} and owner_id = #{owner_id} and batch =#{batch} and standard_id = #{standard_id} and status = 0</delete>
+   	<delete id="deleteByStandardId" parameterType="java.lang.String">delete from T_OWNER_BILL where standard_id = #{standard_id}</delete>
+   	<delete id="deleteByHouseId" parameterType="java.lang.String">delete from T_OWNER_BILL where house_id = #{house_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.OwnerBill">select * from T_OWNER_BILL where bill_id = #{bill_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.OwnerBill">select * from T_OWNER_BILL</select>
+    <select id="findDataByHouseAndOwnerId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.OwnerBill">
+    	select * from T_OWNER_BILL where  owner_id = #{owner_id}<if test="house_id != ''">and house_id = #{house_id}</if> order by batch,standard_id
+    </select>
+    
+    <select id="payList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT b.bill_id,b.house_id,d.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,h.house_location,o.owner_id,o.owner_name,c.project_name,b.money,b.batch   
+		FROM T_OWNER_BILL b 
+		JOIN ESTATE_HOUSE_DETAIL h ON h.house_id = b.house_id   
+		JOIN ESTATE_OWNER_DETAIL o ON o.owner_id = b.owner_id   
+		JOIN T_CHARGE_STANDARD c ON c.standard_id = b.standard_id   
+		JOIN ESTATE_BUILDING_DETAIL d ON h.building_id = d.building_id 
+		WHERE h.building_id=#{building_id} and h.house_dong = #{house_dong} and h.house_location = #{house_location}  and b.batch = #{batch} and b.status = 0
+    </select>
+    
+    <update id="updateStatus" parameterType="java.lang.String">
+    	update T_OWNER_BILL set status = 1 where bill_id = #{bill_id}
+    </update>
+
+		<update id="updateOwerBillByPayCost" parameterType="java.util.Map">
+    	update T_OWNER_BILL 
+    	set money=#{money},status=#{status},paycost_moneny=#{paycost_moneny},receivable_moneny=#{receivable_moneny},
+    	pay_date=#{pay_date}
+    	where bill_id = #{bill_id}
+    </update>
+    <update id="updateMoneny" parameterType="java.lang.String">
+    	update T_OWNER_BILL set money = #{moneny} where bill_id = #{bill_id}
+    </update>
+</mapper>

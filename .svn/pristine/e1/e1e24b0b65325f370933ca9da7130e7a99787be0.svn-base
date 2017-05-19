@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.ChargeStandardDAO">
+	<insert id="save" parameterType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		insert into T_CHARGE_STANDARD (standard_id,billing_type_id,project_name,denominated_unit,standard_price,coefficient,charge_unit,charge_num,house_dong,house_units,start_floor,end_floor,premium,status,remark,create_time)
+			values(#{standard_id},#{billing_type_id},#{project_name},#{denominated_unit},#{standard_price},#{coefficient},#{charge_unit},#{charge_num},#{house_dong},#{house_units},#{start_floor},#{end_floor},#{premium},#{status},#{remark},#{create_time})
+	</insert>
+	
+	<update id="update" parameterType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		update T_CHARGE_STANDARD set billing_type_id=#{billing_type_id},project_name=#{project_name},denominated_unit=#{denominated_unit},standard_price=#{standard_price}
+									 ,coefficient=#{coefficient},charge_unit=#{charge_unit},charge_num=#{charge_num},house_dong=#{house_dong},house_units=#{house_units},start_floor=#{start_floor}
+									 ,end_floor=#{end_floor},premium=#{premium},status=#{status},remark=#{remark} where standard_id=#{standard_id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from T_CHARGE_STANDARD where standard_id=#{id}
+	</delete>
+	
+	<delete id="deleteByBillingTypeId" parameterType="java.lang.String">
+		delete from T_CHARGE_STANDARD where billing_type_id=#{billing_type_id}
+	</delete>
+	
+	<select id="findById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		select * from T_CHARGE_STANDARD where standard_id=#{id}
+	</select>
+	
+	<select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		select a.*,(select d.code_content from ESTATE_CODE_DETAIL d where a.denominated_unit=d.code_id)  as denominated_unit_text
+		 from T_CHARGE_STANDARD a where a.billing_type_id=#{billing_type_id}
+			and a.project_name like concat('%', #{project_name},'%')
+			order by a.house_dong,a.house_units
+			limit #{m},#{n}
+	</select>
+	
+	<select id="findDataByPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*) from T_CHARGE_STANDARD where billing_type_id=#{billing_type_id} 
+			and project_name like concat('%', #{project_name},'%')
+	</select>
+	
+	<select id="findByBuildingIdAndName" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		select * from T_BILLING_TYPE a,T_CHARGE_STANDARD b where 
+			a.building_id = #{building_id} and a.billing_type_id = b.billing_type_id and b.project_name = #{name}
+	</select>
+	
+	<select id="findAllByBillingTypeId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		SELECT 
+			ebd.building_id,ehd.house_id,ehd.house_dong,ehd.house_units,ehd.house_floor,ehd.house_room,ehd.house_build_area,ehd.house_in_area,eohd.owner_id,eod.owner_name
+		from estate_building_detail ebd
+		JOIN estate_house_detail ehd ON ehd.building_id = ebd.building_id
+		JOIN estate_owner_house_detail eohd on eohd.house_id = ehd.house_id
+		JOIN estate_owner_detail eod ON eohd.owner_id = eod.owner_id
+		WHERE ebd.building_id = #{building_id} and ehd.house_dong = #{house_dong}  AND ehd.house_id = #{house_id}
+	</select>
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.EmployeesDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.Employees">insert into T_EMPLOYEES (employees_id,employees_name,employees_sex,employees_dept,employees_job,induction_time,employees_phone,employees_education,graduate_school,is_positive,office_status,departure_time,birthday,qq,id_number,live_addr,employees_wechat,employees_email,employees_remark,status,building_id,salary,contract_start,contract_end) values(#{employees_id},#{employees_name},#{employees_sex},#{employees_dept},#{employees_job},#{induction_time},#{employees_phone},#{employees_education},#{graduate_school},#{is_positive},#{office_status},#{departure_time},#{birthday},#{qq},#{id_number},#{live_addr},#{employees_wechat},#{employees_email},#{employees_remark},#{status},#{building_id},#{salary},#{contract_start},#{contract_end})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.Employees">update T_EMPLOYEES set employees_name = #{employees_name},employees_sex = #{employees_sex},employees_dept = #{employees_dept},employees_job = #{employees_job},induction_time = #{induction_time},employees_phone = #{employees_phone},employees_education = #{employees_education},graduate_school = #{graduate_school},is_positive = #{is_positive},office_status = #{office_status},departure_time = #{departure_time},birthday = #{birthday},qq = #{qq},id_number = #{id_number},live_addr = #{live_addr},employees_wechat = #{employees_wechat},employees_email = #{employees_email},employees_remark = #{employees_remark},status = #{status},building_id = #{building_id},salary=#{salary},contract_start=#{contract_start},contract_end=#{contract_end} where employees_id = #{employees_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_EMPLOYEES where employees_id = #{employees_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.Employees">select * from T_EMPLOYEES where employees_id = #{employees_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.Employees" parameterType="java.util.Map">select * from T_EMPLOYEES where (employees_id like concat('%', #{employees_id},'%') or employees_name like concat('%', #{employees_name},'%') or employees_job like concat('%', #{employees_job},'%')) order by employees_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from T_EMPLOYEES where building_id=#{building_id} and (employees_id like concat('%', #{employees_id},'%') or employees_name like concat('%', #{employees_name},'%') or employees_job like concat('%', #{employees_job},'%'))</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.Employees">
+    	select a.*,
+    	(select d.code_content from ESTATE_CODE_DETAIL d where a.employees_dept=d.code_id)  as employees_dept_text
+    	from T_EMPLOYEES a where a.building_id=#{building_id} and (a.employees_id like concat('%', #{employees_id},'%') or 
+    	a.employees_name like concat('%', #{employees_name},'%') or a.employees_job like concat('%', #{employees_job},'%')) order by a.employees_id desc limit ${m}, ${n}
+    </select>
+    
+    <select id="findByDeptId" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.Employees">
+    	select * from T_EMPLOYEES where employees_dept = #{id}
+    </select>
+    
+</mapper>

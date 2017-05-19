@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.UserOpinionDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.TUserOpinion">insert into T_USER_OPINION (opinion_id,user_id,opinion_content,opinion_date,opinion_reply,opinion_type) values(#{opinion_id},#{user_id},#{opinion_content},#{opinion_date},#{opinion_reply},#{opinion_type})</insert>
+    <update id="update" parameterType="java.util.Map">update T_USER_OPINION set user_id = #{user_id},opinion_content = #{opinion_content},opinion_date = #{opinion_date},opinion_reply = #{opinion_reply},opinion_type = #{opinion_type} where opinion_id = #{opinion_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_USER_OPINION where opinion_id = #{opinion_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.TUserOpinion">select * from T_USER_OPINION where opinion_id = #{opinion_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.TUserOpinion">select * from T_USER_OPINION</select>
+    <select id="findCount" resultType="java.lang.Integer">select count(*) as count from T_USER_OPINION</select>
+</mapper>

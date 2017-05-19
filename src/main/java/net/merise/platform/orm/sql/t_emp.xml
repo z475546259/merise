@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.EmpDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.Emp">insert into T_EMP (emp_id,emp_name,emp_sex,emp_dept,emp_job,emp_phone,emp_education,graduate_school,emp_time,birthday,qq,id_number,live_addr,emp_wechat,emp_email,emp_remark,building_id,expect_salary,status) values(#{emp_id},#{emp_name},#{emp_sex},#{emp_dept},#{emp_job},#{emp_phone},#{emp_education},#{graduate_school},#{emp_time},#{birthday},#{qq},#{id_number},#{live_addr},#{emp_wechat},#{emp_email},#{emp_remark},#{building_id},#{expect_salary},#{status})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.Emp">update T_EMP set emp_name = #{emp_name},emp_sex = #{emp_sex},emp_dept = #{emp_dept},emp_job = #{emp_job},emp_phone = #{emp_phone},emp_education = #{emp_education},graduate_school = #{graduate_school},emp_time = #{emp_time},birthday = #{birthday},qq = #{qq},id_number = #{id_number},live_addr = #{live_addr},emp_wechat = #{emp_wechat},emp_email = #{emp_email},emp_remark = #{emp_remark},building_id = #{building_id},expect_salary = #{expect_salary},status = #{status} where emp_id = #{emp_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_EMP where emp_id = #{emp_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.Emp">select * from T_EMP where emp_id = #{emp_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.Emp" parameterType="java.util.Map">select * from T_EMP where (status like concat('%', #{status},'%') or emp_name like concat('%', #{emp_name},'%')) order by emp_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+    select count(*) as count from T_EMP where building_id=#{building_id} and status=#{status}</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.Emp">
+    	select a.*,
+    	(select d.code_content from ESTATE_CODE_DETAIL d where a.emp_dept=d.code_id)  as emp_dept_name
+    	 from T_EMP a where a.building_id=#{building_id} and a.status=#{status} order by a.emp_id desc limit ${m}, ${n}
+    </select>
+    
+    <update id="updateStatus">
+    	update T_EMP set status=#{newStatus} where emp_id=#{id}
+    </update>
+</mapper>

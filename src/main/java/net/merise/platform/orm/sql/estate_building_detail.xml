@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.EstateBuildingDetailDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.EstateBuildingDetail">insert into ESTATE_BUILDING_DETAIL (building_id,estate_id,building_developer,building_projectname,building_name,building_location,building_structure,building_type) values(#{building_id},#{estate_id},#{building_developer},#{building_projectname},#{building_name},#{building_location},#{building_structure},#{building_type})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.EstateBuildingDetail">update ESTATE_BUILDING_DETAIL set estate_id = #{estate_id},building_developer = #{building_developer},building_projectname = #{building_projectname},building_name = #{building_name},building_location = #{building_location},building_structure = #{building_structure},building_type = #{building_type} where building_id = #{building_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_BUILDING_DETAIL where building_id = #{building_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateBuildingDetail">select * from ESTATE_BUILDING_DETAIL where building_id = #{building_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.EstateBuildingDetail" parameterType="java.util.Map">select * from ESTATE_BUILDING_DETAIL where building_name like concat('%', #{building_name},'%') order by building_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from ESTATE_BUILDING_DETAIL where building_name like concat('%', #{building_name},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateBuildingDetail">select a.building_id,a.estate_id,a.building_developer,a.building_projectname,a.building_name,a.building_location,a.building_structure,a.building_type,b.estate_name from ESTATE_BUILDING_DETAIL a,ESTATE_INFO_DETAIL b where a.estate_id=b.estate_id and a.building_name like concat('%', #{building_name},'%') order by a.building_id desc limit ${m}, ${n}</select>
+    
+    <select id="findEstateBuildingByEstateId"  parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateBuildingDetail">
+    	select * from ESTATE_BUILDING_DETAIL where estate_id=#{estate_id}
+    </select>
+    
+    <select id="findEstateBuildingByName"  parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateBuildingDetail">
+    	select * from ESTATE_BUILDING_DETAIL where building_name=#{building_name}
+    </select>
+    
+    <select id="findBuildingAll" resultType="net.merise.platform.orm.base.EstateBuildingDetail">
+    	select * from ESTATE_BUILDING_DETAIL
+    </select>
+</mapper>

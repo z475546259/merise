@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.PublicFacilitiesDAO">
+	<insert id="save" parameterType="net.merise.platform.orm.base.PublicFacilities">
+		insert into T_PUBLIC_FACILITIES (public_facilities_id,facilities_name,facilities_count,facilities_status,facilities_location,facilities_type,facilities_linkman,facilities_remark,building_id,house_dong)
+		                         values(#{public_facilities_id},#{facilities_name},#{facilities_count},#{facilities_status},#{facilities_location},#{facilities_type},#{facilities_linkman},#{facilities_remark},#{building_id},#{house_dong})
+	</insert>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from T_PUBLIC_FACILITIES where public_facilities_id = #{id}
+	</delete>
+	
+	<update id="edit" parameterType="net.merise.platform.orm.base.PublicFacilities">
+		update T_PUBLIC_FACILITIES set 
+			facilities_name=#{facilities_name},facilities_count=#{facilities_count},facilities_status=#{facilities_status},facilities_location=#{facilities_location},facilities_type=#{facilities_type},facilities_linkman=#{facilities_linkman},facilities_remark=#{facilities_remark}
+			where public_facilities_id = #{public_facilities_id}
+	</update>
+	
+	<select id="findByBuildingAndDong" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.PublicFacilities">
+		select a.*,
+			(select b.code_content from ESTATE_CODE_DETAIL b where b.code_id=a.facilities_status) as facilities_status_text
+			from T_PUBLIC_FACILITIES a
+			where building_id=#{building_id} and house_dong=#{house_dong} 
+			and (facilities_name like concat('%', #{facilities_name},'%') or facilities_type like concat('%', #{facilities_type},'%'))
+			limit ${m},${n}
+	</select>
+	<select id="findAllByBbuildingId" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.PublicFacilities">
+		select * from T_PUBLIC_FACILITIES where building_id = #{building_id}
+	</select>
+</mapper>

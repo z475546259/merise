@@ -1,0 +1,27 @@
+package net.merise.platform.orm.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import net.merise.platform.orm.base.Announcement;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface AnnouncementDao {
+
+	List<Announcement> findAnnouncementByPage(Map<String, Object> params);
+
+	void save(Announcement ann);
+
+	void delete(@Param("id")String id);
+
+	void edit(Announcement ann);
+
+	int findCount(Map<String, Object> params);
+
+	List<Announcement> findDataByBuildingId(String building_id);
+	
+	void deleteByBuildingId(String building_id);
+}

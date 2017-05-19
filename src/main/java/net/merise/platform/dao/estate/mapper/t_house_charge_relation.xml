@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.HouseChargeRelationDAO">
+    <insert id="save" parameterType="net.merise.platform.dao.estate.pojo.HouseChargeRelation">insert into T_HOUSE_CHARGE_RELATION (relation_id,house_id,standard_id,remark) values(#{relation_id},#{house_id},#{standard_id},#{remark})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.HouseChargeRelation">update T_HOUSE_CHARGE_RELATION set house_id = #{house_id},standard_id = #{standard_id},remark = #{remark} where relation_id = #{relation_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from T_HOUSE_CHARGE_RELATION where standard_id = #{id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.HouseChargeRelation">select * from T_HOUSE_CHARGE_RELATION where relation_id = #{relation_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.HouseChargeRelation">select * from T_HOUSE_CHARGE_RELATION order by relation_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer">select count(*) as count from T_HOUSE_CHARGE_RELATION</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.HouseChargeRelation">select * from T_HOUSE_CHARGE_RELATION order by relation_id desc limit ${m}, ${n}</select>
+    
+    <select id="findHouseDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.EstateHouseDetail">
+	select 
+		a.*,
+		(select b.owner_name from ESTATE_OWNER_DETAIL b,ESTATE_OWNER_HOUSE_DETAIL d where a.house_id=d.house_id and d.owner_id=b.owner_id)  as owner_name,
+		(select c.building_name from ESTATE_BUILDING_DETAIL c where c.building_id=a.building_id)  as building_name
+		from ESTATE_HOUSE_DETAIL a,ESTATE_OWNER_HOUSE_DETAIL e
+		where a.house_id=e.house_id and e.contract_time is not null and a.building_id=#{id} and a.house_dong=#{dong} and a.house_floor like concat('%', #{house_floor},'%') 
+		order by a.house_floor asc,a.house_room asc 
+		limit ${m}, ${n}
+	</select>
+	
+	<select id="findHouseDataCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+	select  count(*) from ESTATE_HOUSE_DETAIL a,ESTATE_OWNER_HOUSE_DETAIL e
+		where a.house_id=e.house_id and e.contract_time is not null and a.building_id=#{id} and a.house_dong=#{dong} and a.house_floor like concat('%', #{house_floor},'%') 
+	</select>
+	
+	<select id="findchargeRelationByHouseId" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.ChargeStandard">
+		select a.relation_id as relation_id,b.* ,
+		(select c.code_content from ESTATE_CODE_DETAIL c where c.code_id=b.denominated_unit)  as denominated_unit_text,
+		(select e.type_name from T_BILLING_TYPE e where e.billing_type_id=b.billing_type_id)  as billing_type_name
+		from T_HOUSE_CHARGE_RELATION a,t_charge_standard b where a.standard_id=b.standard_id and a.remark='0' and a.house_id=#{house_id}
+		order by a.relation_id desc
+		limit ${m}, ${n}
+	</select>
+	
+	<select id="findchargeRelationCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*) from T_HOUSE_CHARGE_RELATION a,T_CHARGE_STANDARD b where a.standard_id=b.standard_id and a.remark='0' and a.house_id=#{house_id}
+	</select>
+	
+	<update id="updateStatus" parameterType="java.lang.String">
+		update T_HOUSE_CHARGE_RELATION set remark='1' where relation_id=#{relation_id}
+	</update>
+	
+</mapper>

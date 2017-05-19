@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.merise.platform.orm.mapper.PayCostItemDao">
+
+	<insert id="insert" parameterType="net.merise.platform.orm.base.PayCost">
+		insert into T_PAYCOST_ITEM (id,should_amount,paid_amount,unpaid_amount,paycost_project,paycost_time,paycost_id,batch,status) 
+		values(#{id},#{should_amount},#{paid_amount},#{unpaid_amount},#{paycost_project},#{paycost_time},#{paycost_id},#{batch},#{status})
+	</insert>
+	
+	<select id="findPayCostItemCountByPage" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*)
+		from t_paycost_item pi
+		LEFT JOIN t_paycost pc ON pi.paycost_id = pc.paycost_id
+		JOIN estate_owner_detail eo ON pc.owner_id = eo.owner_id
+		JOIN ESTATE_HOUSE_DETAIL h ON h.house_id = pc.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id 
+		WHERE b.building_id = '20170327173402135884' and h.house_dong = '1' <!-- and o.status = 1 -->
+		ORDER BY pi.paycost_time DESC
+	</select>
+
+	<select id="findPayCostItemByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		<!-- SELECT o.bill_id,b.building_name,h.house_dong,h.house_units,h.house_floor,h.house_room,h.house_id,
+		(SELECT eod.owner_name from ESTATE_OWNER_DETAIL eod WHERE eod.owner_id = o.owner_id) as owner_name,
+		(SELECT cs.project_name from T_CHARGE_STANDARD cs WHERE o.standard_id = cs.standard_id) as project_name,
+		o.paycost_moneny,o.receivable_moneny,o.money,o.pay_date
+		from T_OWNER_BILL o
+		JOIN ESTATE_HOUSE_DETAIL h ON o.house_id = h.house_id 
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id 
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong} and o.status = 1
+		ORDER BY o.pay_date DESC -->
+		SELECT b.building_name,pi.*,pc.house_id,pc.owner_id,eo.owner_name,h.house_dong,h.house_units,h.house_floor,h.house_room
+		from t_paycost_item pi
+		LEFT JOIN t_paycost pc ON pi.paycost_id = pc.paycost_id
+		JOIN estate_owner_detail eo ON pc.owner_id = eo.owner_id
+		JOIN ESTATE_HOUSE_DETAIL h ON h.house_id = pc.house_id
+		JOIN ESTATE_BUILDING_DETAIL b ON h.building_id = b.building_id 
+		WHERE b.building_id = '20170327173402135884' and h.house_dong = '1' <!-- and o.status = 1 -->
+		ORDER BY pi.paycost_time DESC
+	</select>
+</mapper>

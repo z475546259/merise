@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.EstateConfigDAO">
+    <insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.EstateConfig">insert into ESTATE_CONFIG (config_id,owner_id,owner_table,col_name,col_context) values(#{config_id},#{owner_id},#{owner_table},#{col_name},#{col_context})</insert>
+    <update id="update" parameterType="net.merise.platform.dao.estate.pojo.EstateConfig">update ESTATE_CONFIG set owner_id = #{owner_id},owner_table = #{owner_table},col_name = #{col_name},col_context = #{col_context} where config_id = #{config_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_CONFIG where config_id = #{config_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.EstateConfig">select * from ESTATE_CONFIG where config_id = #{config_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.dao.estate.pojo.EstateConfig">select * from ESTATE_CONFIG order by config_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.lang.String" >select count(*) as count from ESTATE_CONFIG where owner_id=#{owner_id} and owner_table = #{owner_table}</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.EstateConfig">select * from ESTATE_CONFIG where owner_id=#{owner_id} and owner_table = #{owner_table} order by config_id desc limit ${m}, ${n}</select>
+    
+    <select id="findByOwnerIdAndTable" parameterType="java.lang.String" resultType="net.merise.platform.dao.estate.pojo.EstateConfig">
+    	select * from ESTATE_CONFIG where owner_id=#{owner_id} and owner_table = #{owner_table} order by config_id 
+    </select>
+</mapper>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>生成账单</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="static/layer/layer.js"></script>
+	<script type="text/javascript" src="easyui/ifmtech.easyui.extend.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  
+  <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	
+  	<div id="contextBox" style="float: right; display: none;">
+	  	<table id="dg" title="未缴账单列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入房屋编号,格式:1-101"   style="width: 200px; vertical-align: middle;"/>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-order-1" plain="true" id="batchCreate">批量生成</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-user" plain="true" id="singleCreate">单个生成</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	    </div>
+    </div>
+    
+    <div id="dlg" class="easyui-dialog" style="width:400px;display: none;" closed="true" buttons="#dlg-buttons">
+    	<form id="fm" method="post" novalidate style="margin:0;padding:10px 10px">
+    		<div style="margin-bottom:10px">
+    			<select id="houseDongSelect" class="easyui-combobox" required="true" label="楼盘栋号:" style="width:100%"></select>
+    		</div>
+    		<div style="margin-bottom:10px">
+    			<select id="houseChargeSelect" class="easyui-combobox" required="true" label="收费项目:" style="width:100%"></select>
+    		</div>
+    		<div style="margin-bottom:10px">
+                <input name="expire_date" id="expire_date" class="easyui-datebox" required="true" label="到期时间:" style="width:100%">
+            </div>
+    	</form>
+    	<div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveBatch" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+    </div>
+    
+    <div id="dlgSingle" class="easyui-dialog" style="width:400px;display: none;" closed="true" buttons="#dlg-single-buttons">
+    	<form id="fmSingle" method="post" novalidate style="margin:0;padding:10px 10px">
+    		<div style="margin-bottom:10px">
+    			<select id="houseSelect" class="easyui-combobox" required="true" label="房屋选择:" style="width:100%"></select>
+    		</div>
+    		<div style="margin-bottom:10px">
+    			<select id="chargeSelect" class="easyui-combobox" required="true" label="收费项目:" style="width:100%"></select>
+    		</div>
+    		<div style="margin-bottom:10px">
+                <input id="single_expire_date" class="easyui-datebox" required="true" label="到期时间:" style="width:100%">
+            </div>
+    	</form>
+    	<div id="dlg-single-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="saveSingle" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlgSingle').dialog('close')" style="width:90px">取消</a>
+	    </div>
+    </div>
+    
+    <script type="text/javascript">
+    var building_id="";
+    //实例化树菜单  
+ 	$(function(){
+		function formatStatus(val,row) {
+			if(val == 0) {
+				return "未缴";
+			} else {
+				return "已缴";
+			}
+		}
+		function formatExpireDate(val,row) {
+			return (new Date(val)).Format("yyyy-MM-dd");
+		}
+		 $("#tree").tree({  
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+				 if (node.attributes.level == "build") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'bill/findHouseData?building_id='+building_id,
+	        			columns:[[
+							{field:'house_id',title:'房屋编号',width:0,align:'center'},
+							{field:'bill_id',title:'账单编号',width:0,align:'center'},
+	        				{field:'house_dong',title:'栋号',width:80,align:'center'},
+	        				{field:'house_units',title:'单元',width:80,align:'center'},
+	        				{field:'house_floor',title:'楼层',width:80,align:'center'},
+	        				{field:'house_room',title:'房号',width:80,align:'center'},
+	        				{field:'owner_name',title:'业主姓名',width:80,align:'center'},
+	        				{field:'project_name',title:'收费项目',width:80,align:'center'},
+	        				{field:'batch',title:'账单期数',width:80,align:'center'},
+	        				{field:'billmoney',title:'收费金额',width:80,align:'center'},
+	        				{field:'status',title:'收费状态',width:80,align:'center', formatter: formatStatus},
+	        				{field:'expire_date',title:'到期时间',width:80,align:'center', formatter: formatExpireDate}
+	        			]]
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'house_id');
+		    		$("#dg").datagrid('hideColumn', 'bill_id');
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+    
+    function doSearch(value){ //点击搜素,触发此函数
+    	var node = $("#tree").tree("getSelected");
+        $("#dg").datagrid({ 
+            url:'bill/findHouseData?searchValue='+value+'&building_id='+node.id, //触发此action,带上参数searcValue  
+        })  
+    }  
+    
+    $(document).on("click","#batchCreate",function(){
+    	$("#dlg").dialog("open").dialog("center").dialog("setTitle","批量账单生成");
+    	var node = $("#tree").tree("getSelected");
+    	$("#houseDongSelect").combobox({
+    		url:"bill/findHouseDong?building_id="+node.id,
+    		multiple:true,
+    		editable:false,
+    		valueField:"value",
+    		textField:"name"
+    	});
+    	$("#houseChargeSelect").combobox({
+    		url:"bill/findBillType?building_id="+node.id,
+    		multiple:true,
+    		editable:false,
+    		valueField:"standard_id",
+    		textField:"project_name"
+    	});
+    });
+    
+    $(document).on("click","#saveBatch",function(){
+    	var node = $("#tree").tree("getSelected");
+    	var houseDong = $("#houseDongSelect").combobox("getValues");
+    	var houseCharge = $("#houseChargeSelect").combobox("getValues");
+    	var expire_date = $("#expire_date").val();
+    	var status = $("#fm").form("validate");
+    	if (status) {
+    		layer.msg("正在生成账单,请稍候...", {icon:16,shade:0.05,time:0});
+    		$.ajax({
+    			type: "POST",
+             	url: "bill/buildBatchBill",
+             	data:"building_id="+node.id+"&houseDong="+houseDong+"&houseCharge="+houseCharge+"&expire_date="+expire_date,
+             	dataType: "json",
+             	success: function(data){
+             		layer.closeAll();
+             		if (data.status) {
+             			$("#dlg").dialog("close");
+             			layer.msg("账单已生成...");
+             			$("#dg").datagrid("reload");
+             		} else {
+             			layer.msg(data.message);
+             		}
+             	}
+    		});
+    	} else {
+    		return status;
+    	}
+    });
+    
+    $(document).on("click","#singleCreate",function(){
+    	$("#dlgSingle").dialog("open").dialog("center").dialog("setTitle","单个账单生成");
+    	var node = $("#tree").tree("getSelected");
+    	$("#houseSelect").combobox({
+    		url:"bill/searchHouse?building_id="+node.id,
+    		multiple:false,
+    		editable:true,
+    		valueField:"house_id",
+    		textField:"house_location"
+    	});
+    	$("#chargeSelect").combobox({
+    		url:"bill/findBillType?building_id="+node.id,
+    		multiple:true,
+    		editable:false,
+    		valueField:"standard_id",
+    		textField:"project_name"
+    	});
+    });
+    
+    $(document).on("click","#saveSingle",function(){
+    	var node = $("#tree").tree("getSelected");
+    	var houseSelect = $("#houseSelect").combobox("getValue");
+    	var chargeSelect = $("#chargeSelect").combobox("getValues");
+    	var single_expire_date = $("#single_expire_date").val();
+    	var status = $("#fmSingle").form("validate");
+    	if (status) {
+    		layer.msg("正在生成账单,请稍候...", {icon:16,shade:0.05,time:0});
+    		$.ajax({
+    			type: "POST",
+             	url: "bill/buildSingleBill",
+             	data:"building_id="+node.id+"&houseSelect="+houseSelect+"&chargeSelect="+chargeSelect+"&expire_date="+single_expire_date,
+             	dataType: "json",
+             	success: function(data){
+             		layer.closeAll();
+             		if (data.status) {
+             			$("#dlgSingle").dialog("close");
+             			layer.msg("账单已生成...");
+             			$("#dg").datagrid("reload");
+             		} else {
+             			layer.msg(data.message);
+             		}
+             	}
+    		});
+    	} else {
+    		return status;
+    	}
+    });
+    
+    $(document).on("click", "#delete", function(){
+		var row = $("#dg").datagrid("getSelected");
+        if (row){
+            $.messager.confirm("提示信息","是否确认删除该账单?",function(r){
+                if (r){
+                    $.post("bill/deleteBill",{bill_id:row.bill_id},function(result, status){
+                    	
+                    },"json");
+                    $("#dg").datagrid("reload");
+                }
+            });
+        }
+	});
+    </script>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+package net.merise.platform.task;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.merise.platform.orm.base.EstateOwnerDetail;
+import net.merise.platform.orm.base.TMessageTask;
+import net.merise.platform.service.IMessageTaskService;
+import net.merise.platform.service.OwnerService;
+import net.merise.platform.utils.Coder;
+import net.merise.platform.utils.Console;
+import net.merise.platform.utils.IdcardInfoExtractor;
+import net.merise.platform.utils.IdcardValidator;
+import net.merise.platform.utils.MailUtils;
+import net.merise.platform.utils.MessageUtils;
+import net.merise.platform.utils.PushUtils;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSONObject;
+import com.gexin.rp.sdk.template.NotificationTemplate;
+
+/**
+ * @ClassName: MessageTask 
+ * @Description: 生日祝福自动推送任务类
+ * @author SunXiaoYong.Inc
+ * @date 2017年2月14日 下午5:12:27
+ */
+@Component("MessageTask")
+public class MessageTask {
+	
+	@Autowired
+	private IMessageTaskService messageTaskService;
+	@Autowired
+	private OwnerService ownerService;
+	
+	/**
+	 * 生日祝福推送
+	 * 每小时0分0秒执行
+	 */
+	@Scheduled(cron = "0 0 * * * ?")
+	public void task() {
+		Console.i("生日祝福自动任务开始检测", MessageTask.class);
+		Calendar calendar = Calendar.getInstance();
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		SimpleDateFormat sdf = new SimpleDateFormat("MM-dd");
+		String current = sdf.format(new Date());
+		try {
+			List<TMessageTask> list = messageTaskService.findDataByHour(hour+"");
+			Console.i("检测到 "+list.size()+" 条任务需要推送", MessageTask.class);
+			for (int m=0; m<list.size(); m++) {
+				TMessageTask tMessageTask = list.get(m);
+				// 查询房屋用户数据
+				Map<String, Object> dataMap = new HashMap<String, Object>();
+				dataMap.put("m", 0);
+				dataMap.put("n", 10000);
+				dataMap.put("building_id", tMessageTask.getBuilding_id());
+				dataMap.put("dong", tMessageTask.getHouse_dong());
+				dataMap.put("owner_name", "");
+				dataMap.put("owner_mobile", "");
+				dataMap.put("owner_idcard", "");
+				List<EstateOwnerDetail> temp = ownerService.findOwnerByDong(dataMap);
+				List<EstateOwnerDetail> details = new ArrayList<EstateOwnerDetail>();
+				// 处理当天生日的数据
+				for (int j = 0; j < temp.size(); j++) {
+					EstateOwnerDetail estateOwnerDetail = temp.get(j);
+					IdcardValidator validator = new IdcardValidator();
+					boolean v = validator.isValidatedAllIdcard(estateOwnerDetail.getOwner_idcard());
+					if (v) {
+						IdcardInfoExtractor extractor = new IdcardInfoExtractor(estateOwnerDetail.getOwner_idcard());
+						String userFestival = sdf.format(extractor.getBirthday());
+						if (current.equals(userFestival)) {
+							details.add(estateOwnerDetail);
+						}
+					}
+				}
+				// 判断是否推送APP消息
+				if ("1".equals(tMessageTask.getMessage_app())) {
+					this.pushApp(details, tMessageTask);
+				}
+				// 判断是否推送短信消息
+				if ("1".equals(tMessageTask.getMessage_sms())) {
+					this.pushMessage(details, tMessageTask);
+				}
+				// 判断是否推送邮箱消息
+				if ("1".equals(tMessageTask.getMessage_mail())) {
+					this.pushEmail(details, tMessageTask);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 推送APP消息
+	 * @param details
+	 * @param tMessageTask
+	 */
+	private void pushApp(final List<EstateOwnerDetail> details, final TMessageTask tMessageTask) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				Console.i("[APP]消息启动推送", MessageTask.class);
+				List<String> clientIds = new ArrayList<String>();
+				for (int i = 0; i < details.size(); i++) {
+					if (!"".equals(details.get(i).getClientid())) {
+						clientIds.add(details.get(i).getClientid());
+					}
+				}
+				// 调用PushUtils中的方法推送APP消息
+				PushUtils utils = new PushUtils();
+				NotificationTemplate notificationTemplate = new NotificationTemplate();
+				notificationTemplate.setAppId(utils.getAppId());
+				notificationTemplate.setAppkey(utils.getAppKey());
+				notificationTemplate.setTitle(tMessageTask.getMessage_title());
+				notificationTemplate.setText(tMessageTask.getMessage_content());
+				notificationTemplate.setLogo("icon.png");// 配置通知栏图标
+				notificationTemplate.setLogoUrl("");// 配置通知栏网络图标，填写图标URL地址
+				notificationTemplate.setIsRing(true); // 设置通知是否响铃
+				notificationTemplate.setIsVibrate(true); // 设置通知是否震动
+				notificationTemplate.setIsClearable(true); // 设置通知是否可清除
+				notificationTemplate.setTransmissionType(2); // 透传消息设置，1为强制启动应用，客户端接收到消息后就会立即启动应用；2为等待应用启动
+				notificationTemplate.setTransmissionContent(tMessageTask.getMessage_content());
+				if (clientIds.size() > 0) {
+					String[] cs = clientIds.toArray(new String[clientIds.size()]); // 将客户端集合转为数组
+					JSONObject re = utils.pushToList(notificationTemplate, cs); // 推送消息
+					Console.i("推送返回："+re.toJSONString(), MessageTask.class);
+					// 修改推送状态
+					TMessageTask temp = tMessageTask;
+					temp.setMessage_status(1);
+					messageTaskService.update(temp);
+				}
+				Console.i("[APP]消息推送完成", MessageTask.class);
+			}
+		});
+		thread.start();
+	}
+	
+	/**
+	 * 短信推送
+	 * @param details
+	 * @param tMessageTask
+	 */
+	private void pushMessage(final List<EstateOwnerDetail> details, final TMessageTask tMessageTask) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				Console.i("[短信]消息启动推送", MessageTask.class);
+				List<String> mobiles = new ArrayList<String>();
+				for (int i = 0; i < details.size(); i++) {
+					if (!"".equals(Coder.NullToBlank(details.get(i).getOwner_mobile()))) {
+						mobiles.add(details.get(i).getOwner_mobile());
+					}
+				}
+				String[] ms = mobiles.toArray(new String[mobiles.size()]);
+				// 调用MessageUtils中的方法发送短信，未实现具体发送的方法
+				MessageUtils.send(ms, tMessageTask.getMessage_content());
+				// 修改推送状态
+				TMessageTask temp = tMessageTask;
+				temp.setMessage_status(1);
+				messageTaskService.update(temp);
+				Console.i("[短信]消息推送完成", MessageTask.class);
+			}
+		});
+		thread.start();
+	}
+	
+	/**
+	 * 邮箱推送
+	 * @param details
+	 * @param tMessageTask
+	 */
+	private void pushEmail(final List<EstateOwnerDetail> details, final TMessageTask tMessageTask) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				Console.i("[邮箱]消息启动推送", MessageTask.class);
+				List<String> emails = new ArrayList<String>();
+				for (int i = 0; i < details.size(); i++) {
+					if (!"".equals(Coder.NullToBlank(details.get(i).getOwner_email()))) {
+						emails.add(details.get(i).getOwner_email());
+					}
+				}
+				String[] es = emails.toArray(new String[emails.size()]);
+				// 调用邮件发送的代码
+				MailUtils mailUtils = new MailUtils();
+				String content = "<html><head></head><body>"+tMessageTask.getMessage_content()+"</body></html>";
+				mailUtils.sendTextMail(tMessageTask.getMessage_title(), content, es);
+				// 修改推送状态
+				TMessageTask temp = tMessageTask;
+				temp.setMessage_status(1);
+				messageTaskService.update(temp);
+				Console.i("[邮箱]消息推送完成", MessageTask.class);
+			}
+		});
+		thread.start();
+	}
+}

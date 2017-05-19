@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.IReportDAO">
+    <select id="findDataByReport" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.Report">
+    	select * from T_NEWSPAPER_REPORT where owner_id = #{0} and newspaper_type = #{1}
+    </select>
+    <select id="findDataByReportStatue" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.Report">
+    	select * from T_NEWSPAPER_REPORT where owner_id = #{0} and newspaper_status = #{1}
+    </select>
+    <select id="findDataByOwner" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.Report">
+    	select r.* from T_NEWSPAPER_REPORT r, ESTATE_HOUSE_DETAIL h where r.house_id = h.house_id and h.building_id = #{building_id} and r.owner_id = #{owner_id}
+    </select>
+</mapper>

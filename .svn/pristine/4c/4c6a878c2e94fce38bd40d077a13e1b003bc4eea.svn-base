@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>index.html</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="static/layer/layer.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<table id="dg" title="物业信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+  		toolbar="#toolbar" pagination="true"
+  		rownumbers="true" fitColumns="true" singleSelect="true">
+  		
+  	</table>
+  	<div id="toolbar">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+        <input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入物业名称"   style="width: 150px; vertical-align: middle;"/>
+    </div>
+  	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">物业信息</div>
+            <div style="margin-bottom:10px">
+                <input name=estate_name class="easyui-textbox" required="true" label="物业名称:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="estate_location" class="easyui-textbox" required="true" label="物业地址:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="estate_phone" class="easyui-textbox" required="true" label="物业电话:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="estate_head" class="easyui-textbox" required="true" label="物业负责人:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="estate_head_phone" class="easyui-textbox" required="true" label="负责人电话:" style="width:100%">
+            </div>
+            <div style="margin-bottom:10px">
+                <input name="estate_remark" class="easyui-textbox" required="true" label="备注:" style="width:100%">
+            </div>
+        </form>
+    </div>
+    <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+    </div>
+    
+    
+    <div id="dlg1" class="easyui-dialog" closed="true" >
+        <form id="fm" method="post" novalidate style="margin:0;">
+            <table id="tt" style="width:600px;height:370px"  singleSelect="true" >
+            
+            
+			</table>
+        </form>
+    </div>
+    
+    <script type="text/javascript">
+    	
+    	$("#dg").datagrid({
+    		url:"estate/index",
+    		columns:[[
+				{field:"estate_id",width:"10%",align:"center",title:"编号"},
+				{field:"estate_name",width:"20%",align:"center",title:"物业名称"},
+				{field:"estate_location",width:"20%",align:"center",title:"物业地址"},
+				{field:"estate_phone",width:"15%",align:"center",title:"物业电话"},
+				{field:"estate_head",width:"15%",align:"center",title:"物业负责人"},
+				{field:"estate_head_phone",width:"15%",align:"center",title:"负责人电话"},
+				{field:"estate_remark",width:"15%",align:"center",title:"备注"}
+    		]]
+    	});
+    	$("#dg").datagrid("hideColumn", "estate_id");
+    	
+	    function doSearch(value){ //点击搜素,触发此函数
+	        $("#dg").datagrid({  
+	            url:'estate/index?searchValue='+value //触发此action,带上参数searcValue  
+	        })  
+	    }  
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新增物业信息");
+             $("#fm").form("clear");
+             url = "estate/save";
+    	});
+		$(document).on("click", "#edit", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg").dialog("open").dialog("center").dialog("setTitle","修改物业信息");
+                $("#fm").form("load",row);
+                url = "estate/update?id="+row.estate_id;
+            }
+    	});
+		
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("提示信息","<span style='color:red;'>是否确认删除楼盘及有关联的数据？<br/>数据删除后不可恢复，请谨慎操作。</span>",function(r){
+                	if (r){
+	                	layer.msg("正在删除数据,请稍候...", {icon:16,shade:0.05,time:0});
+	            		$.ajax({
+	            			type: "POST",
+	                     	url: "estate/delete",
+	                     	data:"id="+row.estate_id,
+	                     	dataType: "json",
+	                     	success: function(data){
+	                     		layer.closeAll();
+	                     		if (data.status) {
+	                     			$("#dg").datagrid("reload");
+	                     		} else {
+	                     			layer.msg(data.message);
+	                     		}
+	                     	}
+	            		});
+                	}
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                	var isValid = $("#fm").form("validate");
+                	console.info(isValid);
+                	if(!isValid){
+                		return isValid;
+                	}else{
+                		//$("#save").linkbutton('disable');
+                		return isValid;
+                	}
+                },
+                success: function(result){
+                   $("#dlg").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		$(document).on("click", "#detail", function(){
+			var editRow = undefined; //定义全局变量：当前编辑的行
+			var datagrid; //定义全局变量datagrid
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg1").dialog("open").dialog("center").dialog("setTitle","物业详情");
+                $("#fm").form("load",row);
+                
+                datagrid=$("#tt").datagrid({
+        			remoteSort:false,
+        			singleSelect:true,
+        			nowrap:false,
+        			fitColumns:true,
+        			pagination: true, //显示分页
+                    pageSize: 10, //页大小
+                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+        			url:'estateConfig/find?owner_id='+row.estate_id+'&owner_table=estate_info_detail',
+        			columns:[[
+        				{field:'config_id',title:'编号',width:80},
+        				{field:'col_name',title:'列名',width:50, editor: { type: 'validatebox', options: { required: true} }},
+        				{field:'col_context',title:'值',width:120, editor: { type: 'validatebox', options: { required: true} }}
+        			]],
+        			onDblClickRow: function (rowIndex, rowData) {
+        				editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                       //双击开启编辑行
+                       if (editRow != undefined) {
+                           datagrid.datagrid("endEdit", editRow);
+                       }
+                       if (editRow == undefined) {
+                           datagrid.datagrid("beginEdit", rowIndex);
+                           editRow = rowIndex;
+                       }
+                    },
+                    onAfterEdit: function (rowIndex, rowData, changes) {
+                        //endEdit该方法触发此事件
+                        console.info(rowData);
+                        editRow = undefined;
+                    },
+                    toolbar:[{ text: '保存', iconCls: 'icon-save', handler: function () {
+                    	//保存时结束当前编辑的行，自动触发onAfterEdit事件如果要与后台交互可将数据通过Ajax提交后台
+                        var index=editRow;//修改的行数
+                        datagrid.datagrid("endEdit", editRow);
+                        //获取修改行的所有数据
+                        var rows =datagrid.datagrid("getRows");
+                        //获取修后该行所有field的值，在这里将修改后数据写入到数据库中
+                        var rowData = rows[index];
+                        var col_name=rowData.col_name;
+                        var col_context=rowData.col_context;
+                        var config_id=rowData.config_id;
+                        if(config_id!=undefined){
+                        	//修改
+                            $.post("estateConfig/edit",{config_id:config_id,col_name:col_name,col_context:col_context},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                            
+                        }else{
+                        	//保存
+                        	$.post("estateConfig/save",{col_name:col_name,col_context:col_context,owner_table:"estate_info_detail",owner_id:row.estate_id},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                        }
+                        
+                    }
+                    },{ text: '添加', iconCls: 'icon-add', handler: function () {//添加列表的操作按钮添加，修改，删除等
+                    	editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                        
+                        //添加时先判断是否有开启编辑的行，如果有则把开户编辑的那行结束编辑
+                        if (editRow != undefined) {
+                            datagrid.datagrid("endEdit", editRow);
+                        }
+                        //添加时如果没有正在编辑的行，则在datagrid的第一行插入一行
+                        if (editRow == undefined) {
+                            datagrid.datagrid("insertRow", {
+                                index: 0, // index start with 0
+                                row: {
+                                }
+                            });
+                            //将新插入的那一行开户编辑状态
+                            datagrid.datagrid("beginEdit", 0);
+                            //给当前编辑的行赋值
+                            editRow = 0;
+                        }
+
+                    }
+                    },{ text: '删除', iconCls: 'icon-remove', handler: function () {
+                        //删除时先获取选择行
+                        var rows = datagrid.datagrid("getSelections");
+                        //选择要删除的行
+                        if (rows.length > 0) {
+                            $.messager.confirm("提示", "你确定要删除吗?", function (r) {
+                                if (r) {
+                                    var config_id=rows[0].config_id;
+                                    //删除
+                                    $.post("estateConfig/delete",{config_id:config_id},function(result, status){
+                                    },"json");
+                                    $("#tt").datagrid("reload");
+                                }
+                            });
+                        }
+                        else {
+                            $.messager.alert("提示", "请选择要删除的行", "error");
+                        }
+                    }
+                    },{ text: '取消编辑', iconCls: 'icon-redo', handler: function () {
+                        //取消当前编辑行把当前编辑行罢undefined回滚改变的数据,取消选择的行
+                        editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                    }
+                    }]
+        		});
+                
+                $("#tt").datagrid('hideColumn', 'config_id');
+            }
+    	});
+		
+    </script>
+  </body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>employees.jsp</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	
+  	<div id="contextBox" style="float: right; display: none;">
+	  	<table id="dg" title="招聘人信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="luyong">录用</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="change">淘汰/恢复</a>
+	        <select style="width:80px" id="status" class="easyui-combobox" >
+            	<option value="未淘汰">未淘汰</option>
+            	<option value="已淘汰">已淘汰</option>
+            </select>
+	    </div>
+	 
+	  	<div id="dlg" class="easyui-dialog" style="width:660px;height:500px;" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:15px 10px">
+	        	<table cellpadding="5" style="width: 100%">
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				应聘时间:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input type="hidden" name="building_id" id="building_id"/>	
+	        				<input class="easyui-datebox" name="emp_time_value" required="true"  id="emp_time" labelPosition="top" style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				应聘人姓名:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				 <input name="emp_name" class="easyui-textbox" required="true"  style="width: 180px;" />
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				应聘人性别:
+	        			</td>
+	        			<td style="text-align: right;">
+	        					 男<input type="radio" name="emp_sex" value="0" checked="true"/>
+	               				女<input type="radio" name="emp_sex" value="1"/>
+	        			</td>
+	        			<td style="text-align: right;">
+	        				身份证号:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				 <input name="id_number" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				出生日期:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input class="easyui-datebox" name="birthday_value" id="birthday" labelPosition="top" required="true"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				应聘人手机号:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="emp_phone" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				期望薪资:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="expect_salary" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				应聘部门:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<select name="emp_dept"  id="deptCombobox" style="width: 180px;" required="true"></select>
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				应聘岗位:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="emp_job" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				应聘人学历:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="emp_education" class="easyui-textbox" required="true" style="width: 180px;">
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				毕业院校:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="graduate_school" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				QQ:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				 <input name="qq" class="easyui-textbox" style="width: 180px;">
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				居住地址:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				 <input name="live_addr" class="easyui-textbox" required="true"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				微信:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="emp_wechat" class="easyui-textbox"  style="width: 180px;">
+	        			</td>
+	        		</tr>
+	        		<tr>
+	        			<td style="text-align: right;">
+	        				邮箱:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<input name="emp_email" class="easyui-textbox"  style="width: 180px;">
+	        			</td>
+	        			<td style="text-align: right;">
+	        				面试记录:
+	        			</td>
+	        			<td style="text-align: right;">
+	        				<div style="float: left;">
+				                <textarea  rows="5" cols="25" name="emp_remark" class="textarea easyui-validatebox"></textarea>
+			            	</div>
+	        			</td>
+	        		</tr>
+	        	
+	        	</table>
+	       <!--   	 <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘时间:</label>
+					<input class="easyui-datebox" name="emp_time_value" required="true"  id="emp_time" labelPosition="top" style="width:50%;">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<input type="hidden" name="building_id" id="building_id">
+	                <input name="emp_name" class="easyui-textbox" required="true" label="应聘人姓名:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘人性别:</label>
+	               	 男<input type="radio" name="emp_sex" value="0" checked="checked"/>
+	               	女<input type="radio" name="emp_sex" value="1"/>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="id_number" class="easyui-textbox" required="true" label="身份证号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">出生日期:</label>
+					<input class="easyui-datebox" name="birthday_value" id="birthday" labelPosition="top" required="true"  style="width:50%;">
+	            </div>
+	             <div style="margin-bottom:10px">
+	                <input name="emp_phone" class="easyui-textbox" required="true" label="应聘人手机号:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="expect_salary" class="easyui-textbox" required="true" label="期望薪资:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘部门:</label>
+		           	<select name="emp_dept"  id="deptCombobox" style="width:68%" required="true"></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	           		<input name="emp_job" class="easyui-textbox" required="true" label="应聘岗位:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_education" class="easyui-textbox" required="true" label="应聘人学历:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="graduate_school" class="easyui-textbox" required="true" label="毕业院校:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="qq" class="easyui-textbox" label="QQ:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="live_addr" class="easyui-textbox" required="true" label="居住地址:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_wechat" class="easyui-textbox" label="微信:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_email" class="easyui-textbox"  label="邮箱:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<div style="float: left;width: 80px;padding-right:5px;">面试记录:</div>
+	            	<div style="float: left;">
+		                <textarea  rows="5" cols="25" name="emp_remark" class="textarea easyui-validatebox"></textarea>
+	            	</div>
+	            </div>
+	         --> 
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    
+	    
+	    <!-- 详情 -->
+	    <div id="dlg1" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg1-buttons">
+	     	<form id="fm1" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘时间:</label>
+					<input class="easyui-datebox" name="emp_time" required="true"  id="emp_time1" labelPosition="top" style="width:50%;"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_name" class="easyui-textbox" required="true" label="应聘人姓名:" style="width:100%" disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘人性别:</label>
+	               	 男<input type="radio" name="emp_sex" value="0"  disabled="disabled"/>
+	               	女<input type="radio" name="emp_sex" value="1"  disabled="disabled"/>
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="id_number" class="easyui-textbox" required="true" label="身份证号:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">出生日期:</label>
+					<input class="easyui-datebox" name="birthday_value" id="birthday1" labelPosition="top" required="true"  style="width:50%;"  disabled="disabled">
+	            </div>
+	             <div style="margin-bottom:10px">
+	                <input name="emp_phone" class="easyui-textbox" required="true" label="应聘人手机号:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="expect_salary" class="easyui-textbox" required="true" label="期望薪资:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">应聘部门:</label>
+		           	<select name="emp_dept"  id="deptCombobox1" style="width:68%" required="true"  disabled="disabled"></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	           		<input name="emp_job" class="easyui-textbox" required="true" label="应聘岗位:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_education" class="easyui-textbox" required="true" label="应聘人学历:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="graduate_school" class="easyui-textbox" required="true" label="毕业院校:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="qq" class="easyui-textbox" label="QQ:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="live_addr" class="easyui-textbox" required="true" label="居住地址:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_wechat" class="easyui-textbox" label="微信:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="emp_email" class="easyui-textbox"  label="邮箱:" style="width:100%"  disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<div style="float: left;width: 80px;padding-right:5px;">面试记录:</div>
+	            	<div style="float: left;">
+		                <textarea  rows="5" cols="25" name="emp_remark" class="textarea easyui-validatebox"  disabled="disabled"></textarea>
+	            	</div>
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg1-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg1').dialog('close')" style="width:90px">取消</a>
+	    </div>
+    
+    
+    	 <div id="dlg2" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg2-buttons">
+	     	<form id="fm2" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">岗位变动信息</div>
+	             <div style="margin-bottom:10px">
+	             	<input type="hidden" name="employees_id_value" id="employees_id_value">
+	             	<input type="hidden" name="employees_dept_value" id="employees_dept_value">
+	             	<input type="hidden" name="employees_job_value" id="employees_job_value">
+	                <input name="employees_id"  class="easyui-textbox" required="true" label="员工编号:" style="width:100%" disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="employees_name" class="easyui-textbox" required="true" label="员工姓名:" style="width:100%" disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="employees_dept_text" class="easyui-textbox"  required="true" label="原部门:" style="width:100%" disabled="disabled">
+	            </div>
+	             <div style="margin-bottom:10px">
+	                <input name="employees_job" class="easyui-textbox"  required="true" label="原岗位:" style="width:100%" disabled="disabled">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<label class="textbox-label textbox-label-before" style="text-align: left; height: 24px; line-height: 24px;">新部门:</label>
+		           	<select name="new_dept"  id="deptCombobox2" style="width:68%" required="true" ></select>
+	            </div>
+	            <div style="margin-bottom:10px">
+	           		<input name="new_job" class="easyui-textbox" required="true" label="新岗位:" style="width:100%" >
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<div style="float: left;width: 80px;padding-right:5px;">原因:</div>
+	            	<div style="float: left;">
+		                <textarea  rows="5" cols="25" name="reason"  required="true"  class="textarea easyui-validatebox" ></textarea>
+	            	</div>
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg2-buttons">
+	    	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="savejob" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg2').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	    
+    </div>
+    
+    <script type="text/javascript">
+    var estate_id="";
+    var building_id="";
+    //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+				 if (node.attributes.level == "build") {
+			    	estate_id=$(this).tree("getParent",node.target).id;
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'emp/findEmpByBuildingId?building_id='+building_id+'&n='+Math.random(),
+	        			columns:[[
+	        				{field:'emp_id',title:'应聘人编号',width:100,align:'center'},
+	        				{field:'emp_name',title:'应聘人姓名',width:120,align:'center'},
+	        				{field:'emp_sex',title:'应聘人性别',width:80,align:'center',formatter: function (date) {if(date==0){return '男';}else{return '女';}}},
+	        				{field:'emp_dept',title:'应聘部门编号',width:80,align:'center'},
+	        				{field:'emp_dept_name',title:'应聘部门名称',width:80,align:'center'},
+	        				{field:'emp_job',title:'应聘岗位',width:50,align:'center'},
+	        				{field:'emp_phone',title:'应聘人手机号',width:120,align:'center'},
+	        				{field:'emp_education',title:'应聘人学历',width:120,align:'center'},
+	        				{field:'graduate_school',title:'毕业院校',width:120,align:'center'},
+	        				{field:'emp_time',title:'应聘时间',width:120,align:'center',formatter: function (date) {if(date!=null){return date.substring(0,10);}}},
+	        				{field:'birthday',title:'出生日期',width:120,align:'center',formatter: function (date) {if(date!=null){return date.substring(0,10);}}},
+	        				{field:'qq',title:'QQ',width:120,align:'center'},
+	        				{field:'id_number',title:'身份证号',width:120,align:'center'},
+	        				{field:'live_addr',title:'居住地址',width:120,align:'center'},
+	        				{field:'emp_wechat',title:'微信',width:120,align:'center'},
+	        				{field:'emp_email',title:'邮箱',width:120,align:'center'},
+	        				{field:'emp_remark',title:'备注',width:120,align:'center'},
+	        				{field:'building_id',title:'楼盘编号',width:120,align:'center'},
+	        				{field:'expect_salary',title:'期望薪资',width:120,align:'center'},
+	        				{field:'status',title:'状态',width:120,align:'center'}
+	        			]]
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'live_addr');
+		    		$("#dg").datagrid('hideColumn', 'emp_wechat');
+		    		$("#dg").datagrid('hideColumn', 'emp_email');
+		    		$("#dg").datagrid('hideColumn', 'emp_remark');
+		    		$("#dg").datagrid('hideColumn', 'qq');
+		    		$("#dg").datagrid('hideColumn', 'building_id');
+		    		$("#dg").datagrid('hideColumn', 'graduate_school');
+		    		$("#dg").datagrid('hideColumn', 'emp_education');
+		    		$("#dg").datagrid('hideColumn', 'emp_dept');
+		    		$("#dg").datagrid('hideColumn', 'id_number');
+		    		$("#dg").datagrid('hideColumn', 'expect_salary');
+		    		$("#dg").datagrid('hideColumn', 'emp_id');
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+    
+    $(function(){
+   	    $('#status').combobox({
+  	        onChange: function () {
+  	          var status=$("#status").val();
+   	          $("#dg").datagrid({ 
+   	             url:'emp/findEmpByBuildingId?searchValue='+status+"&building_id="+building_id, //触发此action,带上参数searcValue  
+   	          });
+  	        }  
+   	    });  
+   	 }); 
+
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新建应聘人员信息");
+             $("#fm").form("clear");
+             $("#building_id").val(building_id);
+             $.ajax({
+	             type: "POST",
+	             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+	             data: {code_name:"部门",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "";
+	            	$.each(data, function(commentIndex, comment){
+                    	html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                	});
+	            	$("#deptCombobox").html("");
+	            	$("#deptCombobox").append(html);
+	             }
+	          });
+             $("input[name='emp_sex']").get(0).checked = true;
+             url = "emp/save";
+    	});
+    	
+    	
+		$(document).on("click", "#edit", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg").dialog("open").dialog("center").dialog("setTitle","修改应聘人员信息");
+                $("#fm").form("load",row);
+               //默认时间
+               $('#birthday').datebox('setValue', row.birthday);	
+               $('#emp_time').datebox('setValue', row.emp_time);	
+               $("#building_id").val(building_id);
+               $.ajax({
+  	             type: "POST",
+  	             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+  	             data: {code_name:"部门",building_id:building_id},
+  	             dataType: "json",
+  	             success: function(data){
+  	            	var html = "";
+  	            	$.each(data, function(commentIndex, comment){
+  	            		if(row.employees_dept == comment['code_id']){
+                          	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+                         }else{
+                        	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                         }
+                  	});
+  	            	$("#deptCombobox").html("");
+  	            	$("#deptCombobox").append(html);
+  	             }
+  	          });
+                url = "emp/edit?id="+row.emp_id;
+            }
+    	});
+		
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("Confirm","是否确认删除该应聘人员信息?",function(r){
+                    if (r){
+                        $.post("emp/delete",{id:row.emp_id},function(result, status){
+                        	
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#dlg").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		
+		$(document).on("click", "#detail", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg1").dialog("open").dialog("center").dialog("setTitle","应聘人员信息详情");
+                $("#fm1").form("load",row);
+               //默认时间
+               $('#emp_time1').datebox('setValue', row.emp_time);	
+               $('#birthday1').datebox('setValue', row.birthday);	
+               
+               $("#deptCombobox1").html("");
+               $("#deptCombobox1").html("<option selected='selected'>"+row.emp_dept_name+"</option>");
+            }
+    	});
+		
+		
+		//淘汰/恢复
+		$(document).on("click", "#change", function(){
+			var row = $("#dg").datagrid("getSelected");
+			var status=row.status;
+            if (row){
+              	$.post("emp/change",{id:row.emp_id,status:status},function(result, status){
+              		
+                 },"json");
+                 $("#dg").datagrid("reload");
+            }
+		});
+		
+		$(document).on("click", "#gwbd", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+            	$("#dlg2").dialog("open").dialog("center").dialog("setTitle","岗位变动信息");
+                $("#fm2").form("clear");
+       		    $("#fm2").form("load",row);
+       		    $("#employees_id_value").val(row.employees_id);
+       		    $("#employees_dept_value").val(row.employees_dept_text);
+       		    $("#employees_job_value").val(row.employees_job);
+                url = "employees/jobchange";
+	       		 $.ajax({
+		             type: "POST",
+		             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+		             data: {code_name:"部门",building_id:building_id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+	                    	html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+	                	});
+		            	$("#deptCombobox2").html("");
+		            	$("#deptCombobox2").append(html);
+		             }
+		          });
+       		}
+         });
+		
+		$(document).on("click", "#savejob", function(){
+			$("#fm2").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#dlg2").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		//录用
+		$(document).on("click", "#luyong", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("Confirm","是否确认录用应聘人员信息?",function(r){
+                    if (r){
+                    	//先把该应聘人员信息添加到员工信息
+                        $.post("emp/luyong",{id:row.emp_id},function(result, status){
+                        	
+                        },"json");
+ 						$.post("emp/delete",{id:row.emp_id},function(result, status){
+                        	
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		
+    </script>
+  </body>
+</html>

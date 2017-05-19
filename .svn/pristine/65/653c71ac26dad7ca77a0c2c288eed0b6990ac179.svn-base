@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>Gateway Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="bootstarp/css/bootstrap.min.css" />
+	<script type="text/javascript" src="bootstarp/js/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript" src="bootstarp/js/bootstrap.min.js"></script>
+	<!-- ifmtech_common 插件 -->
+	<script type="text/javascript" src="layer/layer.js"></script>
+	<script type="text/javascript" src="bootstarp/js/ifmtech_common.js"></script>
+  </head>
+  
+  <body>
+    <div class="container">
+    	<div class="page-header" style="padding-top: 0;margin-top: 0;padding-bottom: 0;margin-bottom: 0;">
+		  <h2>客户端 <small>接口调用测试</small></h2>
+		</div>
+		<div class="page-content">
+			<form>
+				<div class="form-group" style="margin-top: 10px;">
+					<label for="requestData">请求参数</label> 
+					<textarea id="requestData" class="form-control" rows="6">{"method":"login","params":{"school_id":"cda1d74991ca4ff7958409ec6ef3f26d"}}</textarea>
+				</div>
+				<div class="form-group" style="margin-top: 10px;">
+					<label for="responseData">响应数据</label> 
+					<textarea id="responseData" class="form-control" rows="6"></textarea>
+				</div>
+				<div class="form-group" style="margin-top: 10px;">
+					<button type="button" id="submit" class="btn btn-primary btn-lg btn-block" style="font-family: 微软雅黑">提交请求</button>
+				</div>
+			</form>
+		</div>
+    </div>
+  </body>
+  <script type="text/javascript">
+  	$(document).on('click', '#submit', function(){
+  		$("#responseData").text("");
+  		if ($.trim($("#requestData").val()) != "") {
+  			ifmtech.ajax({
+	  			data : $.trim($("#requestData").val())
+	  		},function(data){
+	  			$("#responseData").val(data);
+	  		});
+  		} else {
+  			layer.msg('请输入请求参数', {icon: 4, shade : [0.3, '#393D49']});
+  		}
+  	});
+  </script>
+</html>

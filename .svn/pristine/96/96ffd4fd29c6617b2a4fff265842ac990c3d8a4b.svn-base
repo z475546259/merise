@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>index.html</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  
+  <div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	
+  	<div id="contextBox" style="float: right; display: none;">
+	  	<table id="dg" title="部门信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	        <input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入部门名称"   style="width: 150px; vertical-align: middle;"/>
+	    </div>
+	  	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">部门信息</div>
+	            <div style="margin-bottom:10px">
+	       		     <input type="hidden" name="code_name" id="code_name">
+	            	 <input type="hidden" name="building_id" id="building_id">
+	                 <input name="code_content" class="easyui-textbox" required="true" label="部门名称:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	            	<div style="float: left;width: 80px;padding-right:5px;">部门备注:</div>
+	            	<div style="float: left;">
+		                <textarea  rows="5" cols="25" name="code_remark"  class="textarea easyui-validatebox"></textarea>
+	            	</div>
+	            </div>
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+    </div>
+    <script type="text/javascript">
+    $('#estateAllCombobox').combobox({
+   		url:'estateBuildingDetail/findEstateAll',
+   		valueField:'estate_id',
+   		textField:'estate_name'
+   	});
+    
+    var building_id="";
+    //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+				 if (node.attributes.level == "build") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'estateCodeEetail/findDeptByBuildingId?building_id='+building_id+'&n='+Math.random(),
+	        			columns:[[
+	        				{field:'code_id',title:'部门编号',width:100,align:'center'},
+	        				{field:'building_id',title:'楼盘编号',width:120,align:'center'},
+	        				{field:'code_content',title:'部门名称',width:80,align:'center'},
+	        				{field:'code_remark',title:'部门备注',width:120,align:'center'}
+	        			]]
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'code_id');
+		    		$("#dg").datagrid('hideColumn', 'building_id');
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+    
+    function doSearch(value){ //点击搜素,触发此函数
+        $("#dg").datagrid({ 
+            url:'estateCodeEetail/findDeptAll?searchValue='+value, //触发此action,带上参数searcValue  
+        })  
+    }  
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新建部门信息");
+             $("#fm").form("clear");
+             $("#building_id").val(building_id);
+             $("#code_name").val("部门");
+             url = "estateCodeEetail/save";
+    	});
+		$(document).on("click", "#edit", function(){
+			$("#code_name").val("部门");
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg").dialog("open").dialog("center").dialog("setTitle","修改部门信息");
+                $("#fm").form("load",row);
+                url = "estateCodeEetail/edit?id="+row.code_id;
+            }
+    	});
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("Confirm","是否确认删除该部门?",function(r){
+                    if (r){
+                        $.post("estateCodeEetail/delete",{id:row.code_id},function(result, status){
+                        	
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#dlg").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+    </script>
+  </body>
+</html>

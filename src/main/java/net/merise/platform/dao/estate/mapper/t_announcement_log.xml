@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.dao.estate.AnnouncementLogDao">
+   
+	<!-- 查询总数 -->
+	<select id="findCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*) from T_ANNOUNCEMENT_LOG
+	</select>
+	
+	<!-- 分页查询 -->
+	<select id="findAnnouncementLogByPage" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.AnnouncementLog">
+		SELECT * from T_ANNOUNCEMENT_LOG 
+		ORDER BY send_time DESC
+		LIMIT ${m}, ${n}
+	</select>
+</mapper>

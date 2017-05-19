@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>用户流水</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<!-- <link rel="stylesheet" href="static/uploadify/uploadify.css" /> -->
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="static/uploadify/jquery.uploadify.min.js"></script>
+	<style type="text/css">
+		.import_bar{
+			overflow:hidden;
+		}
+		 #importIndex{
+		  
+			float: left;
+		}
+		#importEver{
+			float: left;
+		} 
+	</style>
+  </head>
+  
+  <body>
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="用户流水信息表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar" class="import_bar">
+	  		<input id="importIndex" name="importIndex" type="file" class="upload_btn" value="初始数据导入">
+	  	    <input id="importEver" name="importEver" type="file" class="upload_btn" value="每期数据导入">
+	       <!--  <a class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="importIndex" style="border: 1px solie red;!important">初始数据导入</a> -->
+	       <!--  <a class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="importEver" style="float: left;">每期数据导入</a> -->
+	    </div>
+	</div>
+    <script type="text/javascript">
+    
+    var building_id = "";
+    var dong = "";
+    var building_name = "";
+    var house_id="";
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+			 formatter:function(node){
+				 var s = node.text;
+				 if (s.indexOf("栋") == -1) {
+					 if (s.indexOf("车库") == -1) {
+					 	s = s.replace("-","栋-");
+					 }
+				 }
+				 return s;
+			 },
+		     onClick: function(node){
+		    	 	building_id = node.id;//楼盘id
+		    	 	dong = node.attributes.house_dong;// 栋
+		    	 	building_name = $(this).tree("getParent",node.target).text;
+		    	 	$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+					//根据左边栋跟楼盘查询所有业主 
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'houseNumber/findHouseNumberByPage?building_id='+building_id+'&dong='+dong,
+	        			columns:[[
+	        				{field:'house_id',title:'房屋编号',width:80},
+	        				{field:'building_id',title:'楼盘编号',width:80},
+	        				{field:'building_name',title:'楼盘名称',width:80},
+	        				{field:'electricity_number',title:'电户号',width:50},
+	        				{field:'water_number',title:'水户号',width:80},
+	        				{field:'gas_number',title:'气户号',width:80},
+	        				{field:'electricity_start',title:'电起度数',width:50},
+	        				{field:'electricity_end',title:'电止度数',width:50},
+	        				{field:'water_start',title:'水起度数',width:50},
+	        				{field:'water_end',title:'水止度数',width:50},
+	        				{field:'gas_start',title:'气起度数',width:50},
+	        				{field:'gas_end',title:'气止度数',width:50},
+	        				{field:'nper',title:'期数',width:50}
+	        			]],
+	        		});
+		    		$("#dg").datagrid('hideColumn', 'house_id');
+		    		$("#dg").datagrid('hideColumn', 'building_id');
+	    	 }
+		 }); 
+		 //
+		 $("#importIndex").uploadify({
+			 'auto':true,
+			 'swf' : 'static/uploadify/uploadify.swf?var='+(new Date()).getTime(),//定义uploadify.swf的路径
+			 'uploader':'/merise/houseNumber/importHouse',//定义服务器端上传数据处理脚本文件uploadify.swf的路径
+			 //'buttonClass':'easyui-linkbutton l-btn l-btn-small l-btn-plain',
+			 'buttonCursor':'hand',//鼠标经过上传按钮时，鼠标的形状。可选值为‘hand’(手形) 和 ‘arrow’(箭头)。
+			//'buttonImage':'',定义“浏览”按钮背景图像的路径。给按钮设置背景图像的代码最好写在CSS文件中。
+			 'buttonText':'初始数据导入',
+			//'checkExisting':'',定义检查目标文件夹中是否存在同名文件的脚本文件路径。
+			//'debug':true,//当其值为true时，开启SWFUpload调试模式
+			'fileObjName':'importIndex',
+			'fileSizeLimit':10485760000,//上传文件大小限制。
+			'fileTypeDesc':'select file',//可选择的文件类型的描述。此字符串出现在浏览文件对话框的文件类型下拉菜单中。
+			'fileTypeExts':'*.xlsx;*.xls',//定义允许上传的文件后缀
+			//'formData':{'house_id':house_id},//定义在文件上传时需要一同提交的其他数据对象
+			'width':'120',//定义浏览按钮的宽度
+			'height':'30',//上传按钮的高度（单位：像素）。
+			//'itemTemplate':'',//itemTemplate选项允许你为每一个添加到队列中选项设定一个不同HTML模板
+			'method':'post',//上传文件的提交方法，取值‘post‘或‘get‘。
+			'multi':false,//设置值为false时，一次只能选中一个文件
+			//'overrideEvents':'',//该项定义了一组默认脚本中你不想执行的事件名称
+			//'preventCaching':true,//如果设置为真，一个随机的值添加到SWF文件的URL，因此它不会缓存。
+			//'progressData':'speed',//设置显示在上传进度条中的数据类型，可选项时百分比（percentage）或速度（speed）
+			//'queueID':'',//ueueID选项允许你设置一个拥有唯一ID的DOM元素来作为显示上传队列的容器
+			//'queueSizeLimit':'',//上传队列中一次可容纳的最大条数
+			//'removeCompleted':'',//不设置该选项或者将其设置为false，将使上传队列中的项目始终显示于队列中，直到点击了关闭按钮或者队列被清空
+			'removeTimeout':0,//设置上传完成后从上传队列中移除的时间（单位：秒）
+			//'requeueErrors':flase,//设置为真时，上传队列重置或上传多次重试时，返回错误信息
+			//'successTimeout':'30',//表示uploadify的成功等待时间
+			//'uploadLimit':'10',//定义允许的最大上传数量
+			'onUploadStart':function(){
+				$("#importIndex").uploadify("settings","formData",{'building_id':building_id,'dong':dong});
+			},
+			'onFallback' : function() {//检测FLASH失败调用  
+		     	alert("您未安装FLASH控件，无法上传图片！请安装FLASH控件后再试。");  
+		    },	
+		    'onUploadSuccess':function(file, data, response){
+		    	$("#dg").datagrid('reload');  
+		    }
+		 })
+		 
+		 $("#importEver").uploadify({
+			 'auto':true,
+			 'swf' : 'static/uploadify/uploadify.swf?var='+(new Date()).getTime(),//定义uploadify.swf的路径
+			 'uploader':'/merise/houseNumber/importCharge',//定义服务器端上传数据处理脚本文件uploadify.swf的路径
+			 //'buttonClass':'easyui-linkbutton l-btn l-btn-small l-btn-plain',
+			 'buttonCursor':'hand',//鼠标经过上传按钮时，鼠标的形状。可选值为‘hand’(手形) 和 ‘arrow’(箭头)。
+			//'buttonImage':'',定义“浏览”按钮背景图像的路径。给按钮设置背景图像的代码最好写在CSS文件中。
+			 'buttonText':'分期数据导入',
+			//'checkExisting':'',定义检查目标文件夹中是否存在同名文件的脚本文件路径。
+			//'debug':true,//当其值为true时，开启SWFUpload调试模式
+			'fileObjName':'importIndex',
+			'fileSizeLimit':10485760000,//上传文件大小限制。
+			'fileTypeDesc':'select file',//可选择的文件类型的描述。此字符串出现在浏览文件对话框的文件类型下拉菜单中。
+			'fileTypeExts':'*.xlsx;*.xls',//定义允许上传的文件后缀
+			//'formData':{'house_id':house_id},//定义在文件上传时需要一同提交的其他数据对象
+			'width':'120',//定义浏览按钮的宽度
+			'height':'30',//上传按钮的高度（单位：像素）。
+			//'itemTemplate':'',//itemTemplate选项允许你为每一个添加到队列中选项设定一个不同HTML模板
+			'method':'post',//上传文件的提交方法，取值‘post‘或‘get‘。
+			'multi':false,//设置值为false时，一次只能选中一个文件
+			//'overrideEvents':'',//该项定义了一组默认脚本中你不想执行的事件名称
+			//'preventCaching':true,//如果设置为真，一个随机的值添加到SWF文件的URL，因此它不会缓存。
+			//'progressData':'speed',//设置显示在上传进度条中的数据类型，可选项时百分比（percentage）或速度（speed）
+			//'queueID':'',//ueueID选项允许你设置一个拥有唯一ID的DOM元素来作为显示上传队列的容器
+			//'queueSizeLimit':'',//上传队列中一次可容纳的最大条数
+			//'removeCompleted':'',//不设置该选项或者将其设置为false，将使上传队列中的项目始终显示于队列中，直到点击了关闭按钮或者队列被清空
+			'removeTimeout':0,//设置上传完成后从上传队列中移除的时间（单位：秒）
+			//'requeueErrors':flase,//设置为真时，上传队列重置或上传多次重试时，返回错误信息
+			//'successTimeout':'30',//表示uploadify的成功等待时间
+			//'uploadLimit':'10',//定义允许的最大上传数量
+			'onUploadStart':function(){
+				$("#importIndex").uploadify("settings","formData",{'building_id':building_id,'dong':dong});
+			},
+			'onFallback' : function() {//检测FLASH失败调用  
+		     	alert("您未安装FLASH控件，无法上传图片！请安装FLASH控件后再试。");  
+		    },	
+		    'onUploadSuccess':function(file, data, response){
+		    	$("#dg").datagrid('reload');  
+		    }
+		 })
+		 
+	 });
+    </script>
+  </body>
+</html>

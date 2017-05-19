@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.TrainInfoDAO">
+	
+	<insert id="insert" parameterType="net.merise.platform.orm.base.TrainInfo">
+		insert into T_TRAIN_INFO(train_id,train_name,train_info_name,train_content,train_time,train_status,train_remark,estate_id) 
+					values(#{train_id},#{train_name},#{train_info_name},#{train_content},#{train_time},#{train_status},#{train_remark},#{estate_id})
+	</insert>
+	
+	<update id="update" parameterType="net.merise.platform.orm.base.TrainInfo">
+		update T_TRAIN_INFO set train_name=#{train_name},train_info_name=#{train_info_name},train_content=#{train_content},train_time=#{train_time},train_status=#{train_status},train_remark=#{train_remark},estate_id=#{estate_id}
+					where train_id = #{train_id}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.String">
+		delete from T_TRAIN_INFO where train_id = #{id}
+	</delete>
+	
+	<select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+		select count(*) as count from T_TRAIN_INFO 
+			where (train_name like concat('%', #{train_name},'%') or train_info_name like concat('%', #{train_info_name},'%'))
+	</select>
+	
+	<select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.TrainInfo">
+		select a.*,
+    		(select d.estate_name from estate_info_detail d where a.estate_id=d.estate_id)  as estate_name
+    		from T_TRAIN_INFO a where (train_name like concat('%', #{train_name},'%') or train_info_name like concat('%', #{train_info_name},'%'))
+    		order by a.train_id desc limit ${m}, ${n}
+	</select>
+	
+	<select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.TrainInfo">
+		select * from T_TRAIN_INFO where train_id = #{train_id}
+	</select>
+	
+	<select id="findByEstate_idAndBuilding" parameterType="java.util.Map" resultType="java.util.Map">
+		select a.employees_id,a.employees_name,
+			case (select count(*) from t_employees_event b where b.employees_id=a.employees_id and b.event_name='培训' and b.remark=#{remark}) WHEN '0' THEN '未参加'
+				ELSE '已参加' END as status_value,
+			(select d.code_content from estate_code_detail d where a.employees_dept=d.code_id)  as employees_dept_text,a.employees_job
+ 			from t_employees a where building_id=#{building_id} and employees_name like concat('%',#{employees_name},'%')
+ 			limit ${m}, ${n}
+	</select>
+	
+	<select id="findByEstate_idAndBuildingCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*)
+ 			from t_employees a where building_id=#{building_id} and employees_name like concat('%',#{employees_name},'%')
+	</select>
+</mapper>

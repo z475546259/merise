@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.merise.platform.dao.estate.HouseNumberDAO">
+	<insert id="insert" parameterType="net.merise.platform.dao.estate.pojo.HouseNumber">
+		insert into 
+			T_HOUSE_NUMBER(house_number_id,house_id,electricity_number,water_number,gas_number,status,remark,nper)
+		values
+			(#{house_number_id},#{house_id},#{electricity_number},#{water_number},#{gas_number},#{status},#{remark},#{nper})
+	</insert>
+	
+	<!-- 分页查询 -->
+	<select id="findAllByCount"  parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM ESTATE_BUILDING_DETAIL b 
+		JOIN ESTATE_HOUSE_DETAIL h ON h.building_id = b.building_id
+		JOIN T_HOUSE_NUMBER hn ON hn.house_id = h.house_id
+		JOIN T_NUMBER_DETAIL nd ON nd.house_number_id = hn.house_number_id
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong}
+	</select>
+	
+	<select id="findHouseNumberByPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT b.building_id,b.building_name,h.house_id,h.house_dong,h.house_units,h.house_floor,h.house_room,
+			   hn.house_number_id,hn.electricity_number,hn.water_number,hn.gas_number,hn.nper,
+			   nd.electricity_start,nd.electricity_end,nd.water_start,nd.water_end,nd.gas_start,nd.gas_end
+		FROM ESTATE_BUILDING_DETAIL b 
+		JOIN ESTATE_HOUSE_DETAIL h ON h.building_id = b.building_id
+		JOIN T_HOUSE_NUMBER hn ON hn.house_id = h.house_id
+		JOIN T_NUMBER_DETAIL nd ON nd.house_number_id = hn.house_number_id
+		WHERE b.building_id = #{building_id} and h.house_dong = #{house_dong}
+		LIMIT ${m}, ${n}
+	</select>
+	
+	<select id="getHoseNumber" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.HouseNumber">
+		SELECT 
+			* 
+		from 
+			T_HOUSE_NUMBER 
+		WHERE 
+			house_id = #{house_id} and electricity_number=#{electricity_number} and water_number = #{water_number} and gas_number = #{gas_number} and nper = #{nper}
+	</select>
+	
+	<select id="findByHouseId" parameterType="java.util.Map" resultType="net.merise.platform.dao.estate.pojo.HouseNumber">
+		SELECT 
+			* 
+		from 
+			T_HOUSE_NUMBER 
+		WHERE 
+			house_id = #{house_id} and electricity_number=#{electricity_number} and water_number = #{water_number} and gas_number = #{gas_number} and nper = #{nper}
+	</select>
+	
+	<select id="getHouseAndOwen" parameterType="java.util.Map" resultType="java.util.Map">
+		   <!--  SELECT ebd.building_id,ehd.house_id,ehd.house_dong,ehd.house_units,ehd.house_floor,ehd.house_room,ehd.house_build_area,ehd.house_in_area,eohd.owner_id,eod.owner_name
+				from ESTATE_BUILDING_DETAIL ebd
+			JOIN ESTATE_HOUSE_DETAIL ehd ON ehd.building_id = ebd.building_id
+			JOIN ESTATE_OWNER_HOUSE_DETAIL eohd on eohd.house_id = ehd.house_id
+			JOIN ESTATE_OWNER_DETAIL eod ON eohd.owner_id = eod.owner_id
+			WHERE ebd.building_id = #{building_id} and ehd.house_dong = #{house_dong} AND ehd.house_id = #{house_id} -->
+			SELECT 
+				ehd.house_id,ehd.house_dong,ehd.house_units,ehd.house_floor,ehd.house_room,ehd.house_build_area,ehd.house_in_area,eohd.owner_id,eod.owner_name
+			from estate_house_detail ehd
+			JOIN estate_owner_house_detail eohd on eohd.house_id = ehd.house_id
+			JOIN estate_owner_detail eod ON eohd.owner_id = eod.owner_id
+			WHERE ehd.house_id = #{house_id};
+	</select>
+</mapper>

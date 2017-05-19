@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>业主信息</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="公共设施列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  	<div id="toolbar">
+	  		<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" id="new">新增</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" id="edit">修改</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" id="delete">删除</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cologne-star" plain="true" id="detail">详情</a>
+	        <input id="ss" class="easyui-searchbox"  searcher="doSearch"  prompt="请输入设施名称"   style="width: 220px; vertical-align: middle;"/>
+	    </div>
+	  	<div id="dlg" class="easyui-dialog" style="width:400px" closed="true" buttons="#dlg-buttons">
+	        <form id="fm" method="post" novalidate style="margin:0;padding:20px 50px">
+	            <div style="margin-bottom:20px;font-size:14px;border-bottom:1px solid #ccc">设备信息</div>
+	            <div style="margin-bottom:10px">
+	            	<input type="hidden" name="public_facilities_id" />
+	            	<input type="hidden" name="building_id" id="building_id" />
+	            	<input type="hidden" name="house_dong" id="house_dong" />
+	                <input name="facilities_name" class="easyui-textbox" required="true" label="设施名称:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="facilities_count" class="easyui-textbox" required="true" label="设施数量:" style="width:100%">
+	            </div>
+	            
+	            <div style="margin-bottom:10px">
+	            	<select name="facilities_status" id="facilities_status" data-options="editable:false" style="width:100%;" required="true" label="设施状态:"></select>	
+	            </div>
+	            
+	            <div style="margin-bottom:10px">
+	                <input name="facilities_location" class="easyui-textbox" required="true" label="设施地址:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="facilities_type" class="easyui-textbox" required="true" label="设施类型:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="facilities_linkman" class="easyui-textbox" required="true" label="设施负责人:" style="width:100%">
+	            </div>
+	            <div style="margin-bottom:10px">
+	                <input name="facilities_remark" class="easyui-textbox" required="true" label="备注:" style="width:100%">
+	            </div>
+	            
+	        </form>
+	    </div>
+	    <div id="dlg-buttons">
+	        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" id="save" style="width:90px">保存</a>
+	        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+	    </div>
+	</div>
+	
+	
+	<!-- 详情 -->
+    <div id="dlg1" class="easyui-dialog" closed="true" >
+        <form id="fm" method="post" novalidate style="margin:0;">
+            <table id="tt" style="width:600px;height:370px"  singleSelect="true" >
+            
+            
+			</table>
+        </form>
+    </div>
+    
+     <!-- 车库管理 -->
+    <div id="dlg9" class="easyui-dialog" closed="true" >
+        <form id="fm9" method="post" novalidate style="margin:0;">
+            <table id="tt9" style="width:600px;height:370px"  singleSelect="true" >
+            
+            
+			</table>
+        </form>
+    </div>
+  
+  	
+    <script type="text/javascript">
+ 	 //实例化树菜单  
+ 	 var building_id = "";
+ 	var dong = "";
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'messageGroup/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 building_id = node.id;//楼盘id
+		    	 dong = node.text;// 栋
+				 if (node.attributes.level == "house") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'publicFacilities/index?building_id='+building_id+'&dong='+dong,
+	        			columns:[[
+							{field:'house_dong',title:'栋',width:120,align:'center'},
+	        				{field:'public_facilities_id',title:'设施编号',width:80,align:'center'},
+	        				{field:'facilities_name',title:'设施名称',width:120,align:'center'},
+	        				{field:'facilities_count',title:'设施数量',width:80,align:'center'},
+	        				{field:'facilities_status',title:'设施状态编号',width:80,align:'center'},
+	        				{field:'facilities_status_text',title:'设施状态',width:80,align:'center'},
+	        				{field:'facilities_location',title:'设施地址',width:50,align:'center'},
+	        				{field:'facilities_type',title:'设施类型',width:120,align:'center'},
+	        				{field:'facilities_linkman',title:'负责人',width:120,align:'center'},
+	        				{field:'facilities_remark',title:'备注',width:120,align:'center'},
+	        				{field:'building_id',title:'楼盘编号',width:120,align:'center'}
+	        			]]
+	        			
+	        		});
+		    		 $("#dg").datagrid('hideColumn', 'public_facilities_id');
+		    		 $("#dg").datagrid('hideColumn', 'building_id');
+		    		 $("#dg").datagrid('hideColumn', 'facilities_status');
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+
+    
+    function doSearch(value){ //点击搜素,触发此函数
+    	var dong = $('#tree').tree('getSelected').text;
+        $("#dg").datagrid({ 
+            url:'publicFacilities/index?searchValue='+value+'&building_id='+building_id+'&dong='+dong, //触发此action,带上参数searcValue  
+        })  
+    }  
+    
+    	var url;
+    	$(document).on("click", "#new", function(){
+    		
+    		$.ajax({
+	             type: "POST",
+	             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+	             data: {code_name:"公共设施状态",building_id:building_id},
+	             dataType: "json",
+	             success: function(data){
+	            	var html = "";
+	            	$.each(data, function(commentIndex, comment){
+                      if(comment['code_content'] == "正常"){
+                     	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+                      }else{
+                     	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                      }
+              		});
+	            	$("#facilities_status").html("");
+			        $("#facilities_status").append(html);
+	          	}
+	         });
+    		
+    		 $("#dlg").dialog("open").dialog("center").dialog("setTitle","新增设备信息");
+             $("#fm").form("clear");
+             
+             $("#building_id").val(building_id);
+             $("#house_dong").val(dong);
+             
+             url = 'publicFacilities/save';
+    	});
+		$(document).on("click", "#edit", function(){
+			var row = $("#dg").datagrid("getSelected");
+			var building_id = $('#tree').tree('getSelected').id; 
+            if (row){
+            	$.ajax({
+		             type: "POST",
+		             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+		             data: {code_name:"公共设施状态",building_id:building_id},
+		             dataType: "json",
+		             success: function(data){
+		            	var html = "";
+		            	$.each(data, function(commentIndex, comment){
+                           if(row.facilities_status == comment['code_id']){
+                          	 html += "<option value="+comment['code_id']+" selected='selected'>"+comment['code_content']+"</option>";
+                           }else{
+                          	 html += "<option value="+comment['code_id']+">"+comment['code_content']+"</option>"; 
+                           }
+                   		});
+		            	$("#facilities_status").html("");
+				        $("#facilities_status").append(html);
+		          	}
+		         });
+		    }
+            $("#dlg").dialog("open").dialog("center").dialog("setTitle","修改设施信息");
+            $("#fm").form("load",row);
+            url = "publicFacilities/edit";
+    	});
+		$(document).on("click", "#delete", function(){
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $.messager.confirm("Confirm","是否确认删除该设施信息?",function(r){
+                    if (r){
+                        $.post("publicFacilities/delete",{id:row.public_facilities_id},function(result, status){
+                        	
+                        },"json");
+                        $("#dg").datagrid("reload");
+                    }
+                });
+            }
+		});
+		$(document).on("click", "#save", function(){
+			$("#fm").form("submit",{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form("validate");
+                },
+                success: function(result){
+                   $("#dlg").dialog("close");
+                   $("#dg").datagrid("reload");
+                }
+            });
+		});
+		
+		
+		//详情
+		$(document).on("click", "#detail", function(){
+			var editRow = undefined; //定义全局变量：当前编辑的行
+			var datagrid; //定义全局变量datagrid
+			var row = $("#dg").datagrid("getSelected");
+            if (row){
+                $("#dlg1").dialog("open").dialog("center").dialog("setTitle","设施信息详情");
+                $("#fm").form("load",row);
+                
+                datagrid=$("#tt").datagrid({
+        			remoteSort:false,
+        			singleSelect:true,
+        			nowrap:false,
+        			fitColumns:true,
+        			pagination: true, //显示分页
+                    pageSize: 10, //页大小
+                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+        			url:'estateConfig/find?owner_id='+row.public_facilities_id+'&owner_table=t_public_facilities',
+        			columns:[[
+        				{field:'config_id',title:'编号',width:80,align:'center'},
+        				{field:'col_name',title:'列名',width:50,align:'center', editor: { type: 'validatebox', options: { required: true} }},
+        				{field:'col_context',title:'值',width:120,align:'center', editor: { type: 'validatebox', options: { required: true} }}
+        			]],
+        			onDblClickRow: function (rowIndex, rowData) {
+        				editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                       //双击开启编辑行
+                       if (editRow != undefined) {
+                           datagrid.datagrid("endEdit", editRow);
+                       }
+                       if (editRow == undefined) {
+                           datagrid.datagrid("beginEdit", rowIndex);
+                           editRow = rowIndex;
+                       }
+                    },
+                    onAfterEdit: function (rowIndex, rowData, changes) {
+                        //endEdit该方法触发此事件
+                        console.info(rowData);
+                        editRow = undefined;
+                    },
+                    toolbar:[{ text: '保存', iconCls: 'icon-save', handler: function () {
+                        //保存时结束当前编辑的行，自动触发onAfterEdit事件如果要与后台交互可将数据通过Ajax提交后台
+                        var index=editRow;//修改的行数
+                        datagrid.datagrid("endEdit", editRow);
+                        //获取修改行的所有数据
+                        var rows =datagrid.datagrid("getRows");
+                        //获取修后该行所有field的值，在这里将修改后数据写入到数据库中
+                        var rowData = rows[index];
+                        var col_name=rowData.col_name;
+                        var col_context=rowData.col_context;
+                        var config_id=rowData.config_id;
+                        if(config_id!=undefined){
+                        	//修改
+                            $.post("estateConfig/edit",{config_id:config_id,col_name:col_name,col_context:col_context},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                            
+                        }else{
+                        	var owner_table="t_public_facilities";
+                        	var owner_id=row.public_facilities_id;
+                        	//保存
+                        	$.post("estateConfig/save",{col_name:col_name,col_context:col_context,owner_table:owner_table,owner_id:owner_id},function(result, status){
+                            },"json");
+                            $("#tt").datagrid("reload");
+                        }
+                        
+                    }
+                    },{ text: '添加', iconCls: 'icon-add', handler: function () {//添加列表的操作按钮添加，修改，删除等
+                    	editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                        
+                        //添加时先判断是否有开启编辑的行，如果有则把开户编辑的那行结束编辑
+                        if (editRow != undefined) {
+                            datagrid.datagrid("endEdit", editRow);
+                        }
+                        //添加时如果没有正在编辑的行，则在datagrid的第一行插入一行
+                        if (editRow == undefined) {
+                            datagrid.datagrid("insertRow", {
+                                index: 0, // index start with 0
+                                row: {
+
+                                }
+                            });
+                            //将新插入的那一行开户编辑状态
+                            datagrid.datagrid("beginEdit", 0);
+                            //给当前编辑的行赋值
+                            editRow = 0;
+                        }
+
+                    }
+                    },{ text: '删除', iconCls: 'icon-remove', handler: function () {
+                        //删除时先获取选择行
+                        var rows = datagrid.datagrid("getSelections");
+                        //选择要删除的行
+                        if (rows.length > 0) {
+                            $.messager.confirm("提示", "你确定要删除吗?", function (r) {
+                                if (r) {
+                                    var config_id=rows[0].config_id;
+                                    //删除
+                                    $.post("estateConfig/delete",{config_id:config_id},function(result, status){
+                                    },"json");
+                                    $("#tt").datagrid("reload");
+                                }
+                            });
+                        }
+                        else {
+                            $.messager.alert("提示", "请选择要删除的行", "error");
+                        }
+                    }
+                    },{ text: '取消编辑', iconCls: 'icon-redo', handler: function () {
+                        //取消当前编辑行把当前编辑行罢undefined回滚改变的数据,取消选择的行
+                        editRow = undefined;
+                        datagrid.datagrid("rejectChanges");
+                        datagrid.datagrid("unselectAll");
+                    }
+                    }]
+        		});
+                
+                $("#tt").datagrid('hideColumn', 'config_id');
+            }
+    	});
+		
+		$('#facilities_status').combobox({
+       		valueField:'lable',
+       		textField:'value',
+       		data:[
+				{
+					lable:"正常",
+					value:"正常",
+				},
+       		    {
+       				lable:"损坏",
+       				value:"损坏"
+       			}
+       		   ]
+       	});
+    </script>
+  </body>
+</html>

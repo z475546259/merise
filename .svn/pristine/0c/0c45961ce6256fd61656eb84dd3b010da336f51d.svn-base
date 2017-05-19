@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>缴费记录表</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body>
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	 
+	<div id="contextBox" style="float: right; display: none;">
+		<table id="dg" title="缴费记录表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  				<th field="house_id" width="100%" align="center">请选择左边的栋数</th>
+	  			</tr>
+	  		</thead>
+	  	</table>
+	  <!-- 	<div id="toolbar">
+	        <input class="easyui-datetimebox" value="10/11/2012 2:3:56" style="width:200px">
+	    </div> -->
+	</div>
+	
+  	<!-- 详情 -->
+  	<div id="dlg1" class="easyui-dialog" closed="true" >
+        <form id="fm" method="post" novalidate style="margin:0;">
+            <table id="tt" style="width:600px;height:370px"  singleSelect="true" >
+            
+            
+			</table>
+        </form>
+    </div>
+    
+    <script type="text/javascript">
+    
+    var building_id = "";
+    var dong = "";
+    var building_name = "";
+    var house_id="";
+ 	 //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+			 url : "messageGroup/tree",
+			 formatter:function(node){
+				 var s = node.text;
+				 if (s.indexOf("栋") == -1) {
+					 if (s.indexOf("车库") == -1) {
+					 	s = s.replace("-","栋-");
+					 }
+				 }
+				 return s;
+			 },
+		     onClick: function(node){
+		    	 	building_id = node.id;//楼盘id
+		    	 	dong = node.attributes.house_dong;// 栋
+		    	 	building_name = $(this).tree("getParent",node.target).text;
+					if (node.attributes.level == "house") {
+						$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+						$("#contextBox").show();
+						$("#contextBox1").hide();
+		    		 //根据左边栋跟楼盘查询所有业主 
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'payCost/findPayCostByPage?building_id='+building_id+'&dong='+dong,
+	        			columns:[[
+	        				{field:'building_id',title:'楼盘编号',width:80},
+	        				{field:'paycost_id',title:'缴费编号',width:80},
+	        				{field:'building_name',title:'楼盘名称',width:80},
+	        				{field:'house_dong',title:'楼盘栋号',width:80},
+	        				{field:'house_units',title:'单元号',width:80},
+	        				{field:'house_floor',title:'楼层号',width:50},
+	        				{field:'house_room',title:'房号',width:80},
+	        				{field:'house_location',title:'房屋号',width:80},
+	        				/* {field:'owner_name',title:'用户姓名',width:80},
+	        				{field:'paycost_project',title:'缴费项目',width:80}, */
+	        				{field:'paycost_way',title:'缴费方式',width:80},
+	        				{field:'receivable_moneny',title:'应缴金额',width:80},
+	        				{field:'paycost_moneny',title:'实缴金额',width:80},
+	        				{field:'aa',title:'欠费金额',width:80,formatter: function(value,row,index){
+	        					var a = parseFloat(row.paycost_moneny)+parseFloat(row.paycost_balance)-parseFloat(row.receivable_moneny);
+	        					if(a >= 0){
+	        						return 0;
+	        					}else{
+	        						return a.toFixed(2) ;
+	        					}
+	        				}},
+	        				{field:'paycost_balance',title:'用户余额',width:80},
+									{field:'paycost_time',title:'缴费时间',width:80}
+	        			]]
+	        		});
+		    		 $("#dg").datagrid('hideColumn', 'building_id');
+		    		 $("#dg").datagrid('hideColumn', 'paycost_id');
+		         }else if(node.attributes.level == "build"){
+		        	 $("#contextBox1").width($(document.body).width() - $("#treeBox").width() - 10);
+		        	 $("#contextBox1").show();
+		        	 $("#contextBox").hide();
+		        	 
+		        	//根据左边楼盘查询每栋信息
+		    		 $("#dg1").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'estateHouse/findDongInfo?building_id='+building_id,
+	        			columns:[[
+	        				{field:'building_name',title:'楼盘名称',width:80},
+	        				{field:'house_dong',title:'栋号',width:80},
+	        				{field:'roomcount',title:'房屋总量',width:80},
+	        				{field:'floor',title:'总楼层数',width:80},
+	        			]]
+	        		});
+		        	 
+		         }else{
+		        	 $("#contextBox").hide();
+		        	 $("#contextBox1").hide();
+		         }
+	    	 }
+		 }); 
+	 });
+
+    function doSearch(value){ //点击搜素,触发此函数
+        $("#dg").datagrid({ 
+            url:'houseChargeRelation/findHouseDataByPage?searchValue='+value+'&building_id='+building_id+'&dong='+dong,//触发此action,带上参数searcValue  
+        })
+    }
+    
+    
+    $(document).on("click", "#edit", function(){
+    	var denominated_unit_Data=[];
+    	 $.ajax({
+             type: "POST",
+             url: 'estateCodeEetail/findByCodeNameAndBuildingId',
+             data: {code_name:"计价单位",building_id:building_id},
+             dataType: "json",
+             async:false,
+             success: function(data){
+            	$.each(data, function(commentIndex, comment){
+	            	var obj = {};  
+            		obj.code_id=comment['code_id'];
+            		obj.code_content=comment['code_content'];
+	            	denominated_unit_Data.push(obj);
+             	});
+             }
+         });
+    	 var billing_type_Date=[];
+    	 $.ajax({
+             type: "POST",
+             url: 'billingType/findAllByBuilding',
+             data: {building_id:building_id},
+             dataType: "json",
+             async:false,
+             success: function(data){
+            	$.each(data, function(commentIndex, comment){
+	            	var obj = {};  
+            		obj.billing_type_id=comment['billing_type_id'];
+            		obj.type_name=comment['type_name'];
+            		billing_type_Date.push(obj);
+             	});
+             }
+         });
+		var editRow = undefined; //定义全局变量：当前编辑的行
+		var datagrid; //定义全局变量datagrid
+		var row = $("#dg").datagrid("getSelected");
+		house_id=row.house_id;
+        if (row){
+            $("#dlg1").dialog("open").dialog("center").dialog("setTitle","收费项目详情");
+            $("#fm").form("load",row);
+            
+            datagrid=$("#tt").datagrid({
+    			remoteSort:false,
+    			singleSelect:true,
+    			nowrap:false,
+    			fitColumns:true,
+    			pagination: true, //显示分页
+                pageSize: 10, //页大小
+                pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+    			url:'houseChargeRelation/findchargeRelationByHouseId?house_id='+row.house_id,
+    			columns:[[
+    				{field:'relation_id',title:'关系编号',width:150},
+    				{field:'standard_id',title:'标准编号',width:150},
+    				{field:'billing_type_name',title:'计费类别名称',width:120,
+    					editor: {
+	    				    type: 'combobox',  
+	    				    options: {
+	    				        data: billing_type_Date,  
+	    				        valueField: 'billing_type_id',  
+	    				        textField: 'type_name',  
+	    				    }  
+    					}  
+					},
+    				{field:'project_name',title:'项目名称',width:120,editor: { type: 'validatebox', options: { required: true} }},
+    				{field:'denominated_unit_text',title:'计价单位',width:80,
+    					editor: {
+	    				    type: 'combobox',  
+	    				    options: {
+	    				        data: denominated_unit_Data,  
+	    				        valueField: 'code_id',  
+	    				        textField: 'code_content',  
+	    				    }  
+    					}  
+					},
+    				{field:'standard_price',title:'标准单价',width:80,editor: { type: 'validatebox', options: { required: true} }},
+    				{field:'coefficient',title:'系数',width:80,editor: { type: 'validatebox', options: { required: true} }},
+    				{field:'charge_num',title:'收费期限数量',width:100,editor: { type: 'validatebox', options: { required: true} }},
+    				{field:'charge_unit',title:'收费期限单位',width:100,editor: { 
+    					type: 'combobox',  
+    					options:{
+    						valueField:'lable',
+        			      	textField:'value',
+        			      	data:[
+        							{
+        								lable:"天",
+        								value:"天",
+        							},
+        							{
+        								lable:"月",
+        								value:"月",
+        							},
+        							{
+        								lable:"季度",
+        								value:"季度",
+        							},
+        							{
+        								lable:"年",
+        								value:"年",
+        							}
+        			     	]
+    					}
+
+    				}}
+    			]],
+                onAfterEdit: function (rowIndex, rowData, changes) {
+                    //endEdit该方法触发此事件
+                    console.info(rowData);
+                    editRow = undefined;
+                },
+                toolbar:[{ text: '保存', iconCls: 'icon-save', handler: function () {
+                	//保存时结束当前编辑的行，自动触发onAfterEdit事件如果要与后台交互可将数据通过Ajax提交后台
+                    var index=editRow;//修改的行数
+                    datagrid.datagrid("endEdit", editRow);
+                    //获取修改行的所有数据
+                    var rows =datagrid.datagrid("getRows");
+                    //获取修后该行所有field的值，在这里将修改后数据写入到数据库中
+                    var rowData = rows[index];
+                    var billing_type_id=rowData.billing_type_name;//计费类别名称
+                    var project_name=rowData.project_name;
+                    var denominated_unit=rowData.denominated_unit_text;//计价单位
+                    var standard_price=rowData.standard_price;
+                    var coefficient=rowData.coefficient;
+                    var charge_unit=rowData.charge_unit;//收费期限单位
+                    var charge_num=rowData.charge_num;
+                    var standard_id=rowData.standard_id;
+                    if(standard_id==undefined){
+                    	//保存
+                    	$.ajax({
+                            type: "POST",
+                            url: 'houseChargeRelation/save',
+                            data: {building_id:building_id,house_id:house_id,billing_type_id:billing_type_id,project_name:project_name,denominated_unit:denominated_unit,standard_price:standard_price,coefficient:coefficient,charge_unit:charge_unit,charge_num:charge_num},
+                            dataType: "json",
+                            async:false,
+                            success: function(data){
+                            	var resultdata = JSON.parse(data);
+                            	if(!resultdata){
+                            		 $.messager.alert("提示","添加失败,该收费项目名称已存在!");
+                            	}
+                            	$("#tt").datagrid("reload");
+                            	
+                            }
+                        });
+                    }
+                    
+                }
+                },{ text: '添加', iconCls: 'icon-add', handler: function () {//添加列表的操作按钮添加，修改，删除等
+                	editRow = undefined;
+                    datagrid.datagrid("rejectChanges");
+                    datagrid.datagrid("unselectAll");
+                    
+                    //添加时先判断是否有开启编辑的行，如果有则把开户编辑的那行结束编辑
+                    if (editRow != undefined) {
+                        datagrid.datagrid("endEdit", editRow);
+                    }
+                    //添加时如果没有正在编辑的行，则在datagrid的第一行插入一行
+                    if (editRow == undefined) {
+                        datagrid.datagrid("insertRow", {
+                            index: 0, // index start with 0
+                            row: {
+                            }
+                        });
+                        //将新插入的那一行开户编辑状态
+                        datagrid.datagrid("beginEdit", 0);
+                        //给当前编辑的行赋值
+                        editRow = 0;
+                    }
+
+                }
+                },{ text: '删除', iconCls: 'icon-remove', handler: function () {
+                    //删除时先获取选择行
+                    var rows = datagrid.datagrid("getSelections");
+                    //选择要删除的行
+                    if (rows.length > 0) {
+                        $.messager.confirm("提示", "你确定要删除吗?", function (r) {
+                            if (r) {
+                                var relation_id=rows[0].relation_id;
+                                //删除
+                                $.post("houseChargeRelation/delete",{relation_id:relation_id},function(result, status){
+                                },"json");
+                                $("#tt").datagrid("reload");
+                            }
+                        });
+                    }
+                    else {
+                        $.messager.alert("提示", "请选择要删除的行", "error");
+                    }
+                }
+                },{ text: '取消编辑', iconCls: 'icon-redo', handler: function () {
+                    //取消当前编辑行把当前编辑行罢undefined回滚改变的数据,取消选择的行
+                    editRow = undefined;
+                    datagrid.datagrid("rejectChanges");
+                    datagrid.datagrid("unselectAll");
+                }
+                }]
+    		});
+            
+            $("#tt").datagrid('hideColumn', 'standard_id');
+            $("#tt").datagrid('hideColumn', 'relation_id');
+        }
+	});
+		
+    </script>
+  </body>
+</html>

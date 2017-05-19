@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>birthdayEmployees.jsp</title>
+    <meta charset="utf-8">
+    <base href="/merise/" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="stylesheet" href="easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" href="easyui/themes/icon.css" />
+	<script type="text/javascript" src="easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+  </head>
+  
+  <body style="margin: 0; padding: 0;">
+  	<div id="treeBox" style="float: left;width: auto;">
+  		<ul id="tree"></ul>
+  	</div>
+  	
+  	<div id="contextBox" style="float: right; display: none;">
+	  	<table id="dg" title="本月员工生日信息列表" class="easyui-datagrid" style="min-height: 100vh;"
+	  		toolbar="#toolbar" pagination="true"
+	  		rownumbers="true" fitColumns="true" singleSelect="true">
+	  		<thead>
+	  			<tr>
+	  			
+	  			</tr>
+	  		</thead>
+	  	</table>
+	 </div>
+	  	
+    <script type="text/javascript">
+    //实例化树菜单  
+	 $(function(){
+		 $("#tree").tree({  
+		     url:'employees/tree',//请求路径，id为根节点的id  
+		     onClick: function(node){
+		    	 var building_id = node.id;//楼盘id
+				 if (node.attributes.level == "build") {
+					$("#contextBox").width($(document.body).width() - $("#treeBox").width() - 10);
+					$("#contextBox").show();
+		    		 //根据左边栋跟楼盘查询所有业主
+		    		 $("#dg").datagrid({
+	        			remoteSort:false,
+	        			nowrap:false,
+	        			pagination: true, //显示分页
+	                    pageSize: 10, //页大小
+	                    pageList: [10, 20, 30, 40, 50], //页大小下拉选项此项各value是pageSize的倍数
+	        			url:'total/findBirthdayByDate?building_id='+building_id+'&n='+Math.random(),
+	        			columns:[[
+	        				{field:'employees_id',title:'员工编号',width:100,align:'center'},
+	        				{field:'employees_name',title:'员工姓名',width:120,align:'center'},
+	        				{field:'employees_sex',title:'员工性别',width:80,align:'center',formatter: function (date) {if(date==0){return '男';}else{return '女';}}},
+	        				{field:'birthday',title:'出生日期',width:120,align:'center',formatter: function (date) {if(date!=null){return date.substring(0,10);}}},
+	        				{field:'employees_dept_text',title:'部门名称',width:80,align:'center'},
+	        				{field:'employees_job',title:'岗位',width:50,align:'center'},
+	        				{field:'employees_phone',title:'员工手机号',width:120,align:'center'},
+	        			]]
+	        		});
+		    		$("#dg").datagrid("hideColumn", "employees_id");
+		         }else {
+					$("#contextBox").hide();
+				 }
+	    	 }
+		 }); 
+	 });
+    
+    </script>
+  </body>
+</html>

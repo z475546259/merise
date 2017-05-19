@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="net.merise.platform.orm.mapper.EstateCodeEetailDAO">
+    <insert id="insert" parameterType="net.merise.platform.orm.base.EstateCodeDetail">insert into ESTATE_CODE_DETAIL (code_id,building_id,code_name,code_content,code_sequence,code_remark) values(#{code_id},#{building_id},#{code_name},#{code_content},#{code_sequence},#{code_remark})</insert>
+    <update id="update" parameterType="net.merise.platform.orm.base.EstateCodeDetail">update ESTATE_CODE_DETAIL set building_id = #{building_id},code_name = #{code_name},code_content = #{code_content},code_sequence = #{code_sequence},code_remark = #{code_remark} where code_id = #{code_id}</update>
+    <delete id="delete" parameterType="java.lang.String">delete from ESTATE_CODE_DETAIL where code_id = #{code_id}</delete>
+    <delete id="deleteByBuildingId" parameterType="java.lang.String">delete from ESTATE_CODE_DETAIL where building_id = #{building_id}</delete>
+    <select id="findDataById" parameterType="java.lang.String" resultType="net.merise.platform.orm.base.EstateCodeDetail">select * from ESTATE_CODE_DETAIL where code_id = #{code_id}</select>
+    <select id="findAllData" resultType="net.merise.platform.orm.base.EstateCodeDetail" parameterType="java.util.Map">select * from ESTATE_CODE_DETAIL where code_name like concat('%', #{code_name},'%') order by code_id desc</select>
+    <select id="findCount" resultType="java.lang.Integer" parameterType="java.util.Map">select count(*) as count from ESTATE_CODE_DETAIL where code_name like concat('%', #{code_name},'%')</select>
+    <select id="findDataByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateCodeDetail">select a.code_id,a.building_id,a.code_name,a.code_content,a.code_sequence,a.code_remark,b.building_name from ESTATE_CODE_DETAIL a,ESTATE_BUILDING_DETAIL b where a.building_id=b.building_id and a.code_name like concat('%', #{code_name},'%') order by a.code_id desc limit ${m}, ${n}</select>
+
+	<select id="findByCodeNameAndBuilding" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateCodeDetail">
+    	select * from ESTATE_CODE_DETAIL where code_name = #{code_name} and building_id = #{building_id}
+    </select>
+    
+    <select id="findByCodeNameAndBuildings" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateCodeDetail">
+    	select * from ESTATE_CODE_DETAIL where 
+    		<if test="code_name2 != '' and code_name2 != null">
+    			(
+    		</if>
+    			code_name = #{code_name1}
+    		<if test="code_name2 != '' and code_name2 != null">
+    			or code_name = #{code_name2})
+    		</if>
+    	 and building_id = #{building_id}
+    </select>
+    
+    <select id="findByCodeNameAndBuildingAndContent"  parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateCodeDetail">
+   	 select * from ESTATE_CODE_DETAIL where code_name = #{code_name} and building_id = #{building_id} and code_content=#{code_content}
+    </select>
+    
+    <select id="findDeptAllByPage" parameterType="java.util.Map" resultType="net.merise.platform.orm.base.EstateCodeDetail">
+    	select a.code_id,a.building_id,a.code_name,a.code_content,a.code_sequence,a.code_remark,b.building_name from ESTATE_CODE_DETAIL a,ESTATE_BUILDING_DETAIL b
+    	 where a.building_id=b.building_id and a.building_id=#{building_id} and a.code_name='部门' and a.code_content like concat('%', #{code_content},'%') order by a.code_id desc limit ${m}, ${n}
+    </select>
+    
+    <select id="findDeptAllCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+    	select count(*) as count from ESTATE_CODE_DETAIL where building_id=#{building_id} and code_name='部门' and code_content like concat('%', #{code_content},'%')
+    </select>
+    
+     <select id="findByCodeAndBuddi" resultType="net.merise.platform.orm.base.EstateCodeDetail">
+    		SELECT * from ESTATE_CODE_DETAIL WHERE building_id = #{building_id} and code_content = #{code_content}
+    </select>
+</mapper>
